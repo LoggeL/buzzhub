@@ -8,15 +8,18 @@
 	import type { Lobby } from '$lib/stores/lobby';
 
 	const GAMES = [
-		{ id: 'quiz', name: 'Quiz Battle', desc: 'Beantworte Fragen schneller als alle anderen!', icon: '🧠', min: 2, duration: '6:30', views: '1.2M', thumb: '#e74c3c' },
-		{ id: 'voting', name: 'Abstimmung', desc: 'Schreibe die witzigste Antwort und sammle Stimmen!', icon: '🏆', min: 3, duration: '8:15', views: '856K', thumb: '#f39c12' },
-		{ id: 'bluff', name: 'Bluff Master', desc: 'Taeuschen deine Mitspieler mit falschen Antworten!', icon: '🎭', min: 3, duration: '10:02', views: '2.1M', thumb: '#9b59b6' },
-		{ id: 'drawing', name: 'Kritzelei', desc: 'Zeichne auf deinem Handy und lass die anderen raten!', icon: '✏️', min: 3, duration: '12:45', views: '943K', thumb: '#2ecc71' },
+		{ id: 'quiz', name: 'Heisses Quiz', desc: 'Mehrere Spieler gleichzeitig druecken den richtigen Buzzer...', icon: '🍑', min: 2, duration: '6:30', views: '1.2M', thumb: '#e74c3c' },
+		{ id: 'voting', name: 'Abstimmung XXL', desc: 'Wer hat die laengste... Antwort? Alle bewerten sich gegenseitig', icon: '🍆', min: 3, duration: '8:15', views: '856K', thumb: '#f39c12' },
+		{ id: 'bluff', name: 'Bluff Master', desc: 'Steck es den anderen! Wer schluckt die falsche Antwort?', icon: '🥵', min: 3, duration: '10:02', views: '2.1M', thumb: '#9b59b6' },
+		{ id: 'drawing', name: 'Nacktes Zeichnen', desc: 'Alle starren auf deinen Stift... Zeichne und lass sie kommen!', icon: '🫦', min: 3, duration: '12:45', views: '943K', thumb: '#2ecc71' },
+		{ id: 'crossword', name: 'Woerter Suche', desc: 'Finde versteckte Woerter bevor es die anderen tun! Je laenger desto besser...', icon: '💦', min: 2, duration: '3:00', views: '3.4M', thumb: '#e67e22', configurable: true },
 	];
 
 	let lobbyData = $state<Lobby | null>(null);
 	let myId = $state('');
 	let isHost = $derived(lobbyData?.hostId === myId);
+	let gameSettings = $state<Record<string, any>>({ gridSize: 10, duration: 90 });
+	let showSettings = $derived(isHost && lobbyData?.gameId === 'crossword');
 
 	onMount(() => {
 		myId = getPlayerId() || '';
@@ -76,7 +79,16 @@
 
 	function startGame() {
 		if (!isHost || !lobbyData?.gameId) return;
+		// Send settings before starting if configurable
+		const selectedGame = GAMES.find(g => g.id === lobbyData?.gameId);
+		if (selectedGame?.configurable) {
+			getSocket().emit('lobby:configure-game', { settings: gameSettings });
+		}
 		getSocket().emit('lobby:start-game', {});
+	}
+
+	function updateSetting(key: string, value: number) {
+		gameSettings = { ...gameSettings, [key]: value };
 	}
 
 	function kickPlayer(pid: string) {
@@ -158,6 +170,36 @@
 				{/each}
 			</div>
 		</div>
+
+		{#if showSettings}
+			<div class="card settings-card fade-in">
+				<h3>Einstellungen</h3>
+				<div class="setting-row">
+					<label>Spielfeldgroesse</label>
+					<div class="setting-options">
+						{#each [{v:8,l:'Klein (8x8)'},{v:10,l:'Mittel (10x10)'},{v:12,l:'Gross (12x12)'},{v:14,l:'Riesig (14x14)'}] as opt}
+							<button
+								class="setting-btn"
+								class:active={gameSettings.gridSize === opt.v}
+								onclick={() => updateSetting('gridSize', opt.v)}
+							>{opt.l}</button>
+						{/each}
+					</div>
+				</div>
+				<div class="setting-row">
+					<label>Zeitlimit</label>
+					<div class="setting-options">
+						{#each [{v:60,l:'60s'},{v:90,l:'90s'},{v:120,l:'2 Min'},{v:180,l:'3 Min'}] as opt}
+							<button
+								class="setting-btn"
+								class:active={gameSettings.duration === opt.v}
+								onclick={() => updateSetting('duration', opt.v)}
+							>{opt.l}</button>
+						{/each}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		{#if isHost}
 			<button
@@ -398,6 +440,52 @@
 	.video-meta {
 		font-size: 0.65rem;
 		color: var(--text-muted);
+	}
+
+	.settings-card {
+		width: 100%;
+		margin-top: 1rem;
+	}
+
+	.settings-card h3 {
+		font-size: 0.9rem;
+		color: var(--primary);
+		margin-bottom: 0.75rem;
+	}
+
+	.setting-row {
+		margin-bottom: 0.75rem;
+	}
+
+	.setting-row label {
+		display: block;
+		font-size: 0.8rem;
+		color: var(--text-muted);
+		margin-bottom: 0.35rem;
+	}
+
+	.setting-options {
+		display: flex;
+		gap: 0.35rem;
+		flex-wrap: wrap;
+	}
+
+	.setting-btn {
+		padding: 0.4rem 0.6rem;
+		font-size: 0.75rem;
+		background: var(--bg-input);
+		color: var(--text);
+		border-radius: 2px;
+		border: 1px solid #333;
+		font-weight: 500;
+		transition: all 0.15s;
+	}
+
+	.setting-btn.active {
+		background: var(--primary);
+		color: #000;
+		border-color: var(--primary);
+		font-weight: 700;
 	}
 
 	.start-btn {

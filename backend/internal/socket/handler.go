@@ -19,7 +19,8 @@ type Handler struct {
 	engine   *engine.Engine
 
 	// Maps socketID -> {lobbyCode, playerID}
-	connections sync.Map
+	connections  sync.Map
+	gameSettings sync.Map // lobbyCode -> map[string]any
 }
 
 type connInfo struct {
@@ -62,6 +63,10 @@ func (h *Handler) Setup() {
 
 		client.On("lobby:select-game", func(args ...any) {
 			h.handleSelectGame(client, args)
+		})
+
+		client.On("lobby:configure-game", func(args ...any) {
+			h.handleConfigureGame(client, args)
 		})
 
 		client.On("lobby:start-game", func(args ...any) {
@@ -280,8 +285,35 @@ func (h *Handler) handleStartGame(client *socket.Socket, args []any) {
 		"game":   gi,
 	})
 
-	if err := h.engine.StartGame(ctx, info.LobbyCode, l.GameID); err != nil {
+	var settings map[string]any
+	if val, ok := h.gameSettings.Load(info.LobbyCode); ok {
+		settings, _ = val.(map[string]any)
+	}
+
+	if err := h.engine.StartGame(ctx, info.LobbyCode, l.GameID, settings); err != nil {
 		client.Emit("lobby:error", map[string]any{"message": err.Error()})
+	}
+}
+
+func (h *Handler) handleConfigureGame(client *socket.Socket, args []any) {
+	info := h.getConn(client)
+	if info == nil {
+		return
+	}
+
+	ctx := context.Background()
+	l, err := h.lobbyMgr.Get(ctx, info.LobbyCode)
+	if err != nil || l.HostID != info.PlayerID {
+		return
+	}
+
+	data := toMap(args)
+	settings, _ := data["settings"].(map[string]any)
+	if settings != nil {
+		h.gameSettings.Store(info.LobbyCode, settings)
+		h.io.To(roomKey(info.LobbyCode)).Emit("lobby:game-settings", map[string]any{
+			"settings": settings,
+		})
 	}
 }
 

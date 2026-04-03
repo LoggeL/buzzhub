@@ -133,6 +133,27 @@
 			</div>
 		</div>
 
+	{:else if phase === 'playing' && data}
+		<div class="host-crossword">
+			<h2>Woertersuche</h2>
+			{#if data.grid}
+				<div class="host-grid" style="grid-template-columns: repeat({data.gridSize}, 1fr);">
+					{#each data.grid as row}
+						{#each row.split('') as letter}
+							<div class="host-cell">{letter}</div>
+						{/each}
+					{/each}
+				</div>
+			{/if}
+			{#if data.words}
+				<div class="host-word-list">
+					{#each data.words as word}
+						<span class="host-word">{word}</span>
+					{/each}
+				</div>
+			{/if}
+		</div>
+
 	{:else if (phase === 'results' || phase === 'scoreboard' || phase === 'end') && data}
 		<div class="host-scores">
 			<h2>{data.final ? 'Endergebnis' : 'Zwischenstand'}</h2>
@@ -309,6 +330,52 @@
 	.host-canvas-container canvas {
 		width: 100%;
 		height: 100%;
+	}
+
+	.host-crossword {
+		max-width: 700px;
+		width: 100%;
+	}
+
+	.host-crossword h2 {
+		font-size: 2rem;
+		margin-bottom: 1rem;
+	}
+
+	.host-grid {
+		display: grid;
+		gap: 0;
+		max-width: 500px;
+		margin: 0 auto;
+	}
+
+	.host-cell {
+		aspect-ratio: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 700;
+		font-size: 1.2rem;
+		font-family: monospace;
+		background: var(--bg-card);
+		border: 1px solid #222;
+	}
+
+	.host-word-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		justify-content: center;
+		margin-top: 1.5rem;
+	}
+
+	.host-word {
+		background: var(--bg-card);
+		padding: 0.4rem 0.8rem;
+		border-radius: 2px;
+		font-family: monospace;
+		font-weight: 700;
+		font-size: 1rem;
 	}
 
 	.host-scores h2 {

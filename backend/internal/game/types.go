@@ -49,4 +49,8 @@ type Game interface {
 	Cleanup()
 }
 
+type Configurable interface {
+	Configure(settings map[string]any)
+}
+
 type Factory func() Game

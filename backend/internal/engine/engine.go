@@ -44,7 +44,7 @@ func (e *Engine) SetPhaseEndFunc(fn PhaseEndFunc) {
 	e.onEnd = fn
 }
 
-func (e *Engine) StartGame(ctx context.Context, code, gameID string) error {
+func (e *Engine) StartGame(ctx context.Context, code, gameID string, settings map[string]any) error {
 	l, err := e.lobbyMgr.Get(ctx, code)
 	if err != nil {
 		return err
@@ -62,6 +62,11 @@ func (e *Engine) StartGame(ctx context.Context, code, gameID string) error {
 
 	if err := g.Init(ctx, playerIDs); err != nil {
 		return err
+	}
+
+	// Apply game-specific settings if supported
+	if cfg, ok := g.(game.Configurable); ok && settings != nil {
+		cfg.Configure(settings)
 	}
 
 	if err := e.lobbyMgr.SetStatus(ctx, code, "playing"); err != nil {

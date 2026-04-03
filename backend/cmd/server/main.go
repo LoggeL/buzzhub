@@ -14,6 +14,7 @@ import (
 
 	// Register all games
 	_ "github.com/logge/buzzhub/internal/games/bluff"
+	_ "github.com/logge/buzzhub/internal/games/crossword"
 	_ "github.com/logge/buzzhub/internal/games/drawing"
 	_ "github.com/logge/buzzhub/internal/games/quiz"
 	_ "github.com/logge/buzzhub/internal/games/voting"

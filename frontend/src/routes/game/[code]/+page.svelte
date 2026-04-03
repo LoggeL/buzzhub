@@ -9,6 +9,7 @@
 	import VotingPlayer from '$lib/components/games/voting/VotingPlayer.svelte';
 	import BluffPlayer from '$lib/components/games/bluff/BluffPlayer.svelte';
 	import DrawingPlayer from '$lib/components/games/drawing/DrawingPlayer.svelte';
+	import CrosswordPlayer from '$lib/components/games/crossword/CrosswordPlayer.svelte';
 
 	let gameId = $state('');
 	let phase = $state('');
@@ -20,6 +21,7 @@
 		voting: VotingPlayer,
 		bluff: BluffPlayer,
 		drawing: DrawingPlayer,
+		crossword: CrosswordPlayer,
 	};
 
 	onMount(() => {
