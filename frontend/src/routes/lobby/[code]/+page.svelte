@@ -247,9 +247,10 @@
 
 	.host-badge {
 		font-size: 0.65rem;
-		background: var(--secondary);
+		background: var(--primary);
+		color: #000;
 		padding: 0.15rem 0.4rem;
-		border-radius: 4px;
+		border-radius: 3px;
 		font-weight: 700;
 	}
 

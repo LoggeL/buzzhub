@@ -59,7 +59,7 @@
 
 <div class="page">
 	<div class="hero">
-		<h1 class="logo">BuzzHub</h1>
+		<h1 class="logo">Buzz<span class="hub">Hub</span></h1>
 		<p class="tagline">Party-Spiele mit Freunden</p>
 	</div>
 
@@ -133,11 +133,16 @@
 	.logo {
 		font-size: 3.5rem;
 		font-weight: 900;
-		background: linear-gradient(135deg, var(--primary), #ff6b81, #ffd93d);
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
 		letter-spacing: -0.02em;
+		color: #fff;
+	}
+
+	.hub {
+		background: var(--primary);
+		color: #000;
+		padding: 0 0.2em;
+		border-radius: 4px;
+		margin-left: 0.05em;
 	}
 
 	.tagline {

@@ -1,18 +1,18 @@
 :root {
-	--bg: #0f0f23;
-	--bg-card: #1a1a2e;
-	--bg-input: #16213e;
-	--primary: #e94560;
-	--primary-hover: #ff6b81;
-	--secondary: #533483;
-	--accent: #0f3460;
-	--text: #eee;
-	--text-muted: #888;
-	--success: #2ecc71;
-	--warning: #f39c12;
-	--danger: #e74c3c;
-	--radius: 12px;
-	--radius-sm: 8px;
+	--bg: #000000;
+	--bg-card: #1b1b1b;
+	--bg-input: #111111;
+	--primary: #ff9000;
+	--primary-hover: #ffab33;
+	--secondary: #333333;
+	--accent: #272727;
+	--text: #ffffff;
+	--text-muted: #999999;
+	--success: #ff9000;
+	--warning: #ff9000;
+	--danger: #cc0000;
+	--radius: 4px;
+	--radius-sm: 3px;
 }
 
 * {
@@ -22,7 +22,7 @@
 }
 
 html, body {
-	font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+	font-family: Arial, Helvetica, sans-serif;
 	background: var(--bg);
 	color: var(--text);
 	min-height: 100dvh;
@@ -78,7 +78,7 @@ input {
 }
 
 .btn-secondary:hover {
-	background: #1a4a7a;
+	background: #444;
 }
 
 .btn-ghost {

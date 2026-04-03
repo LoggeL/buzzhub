@@ -53,7 +53,7 @@
 
 <div class="host-page">
 	<div class="host-header">
-		<h1 class="host-logo">BuzzHub</h1>
+		<h1 class="host-logo">Buzz<span class="hub">Hub</span></h1>
 		{#if timerVal > 0}
 			<div class="host-timer">{timerVal}s</div>
 		{/if}
@@ -182,7 +182,14 @@
 	.host-logo {
 		font-size: 1.5rem;
 		font-weight: 900;
-		color: var(--primary);
+		color: #fff;
+	}
+
+	.hub {
+		background: var(--primary);
+		color: #000;
+		padding: 0 0.15em;
+		border-radius: 3px;
 	}
 
 	.host-timer {
