@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	let { phase, data, timerVal, sendAction }: {
 		phase: string;
 		data: any;
@@ -8,8 +6,11 @@
 		sendAction: (type: string, data?: Record<string, any>) => void;
 	} = $props();
 
-	let guess = $state('');
+	let selecting = $state(false);
+	let selectedPath = $state<number[][]>([]);
 	let foundWords = $state<string[]>([]);
+	let foundCells = $state<Set<string>>(new Set());
+	let globalFoundWords = $state<Set<string>>(new Set());
 	let lastResult = $state<{ word: string; points: number; order: number } | null>(null);
 	let wrongFlash = $state(false);
 	let totalFound = $state(0);
@@ -17,36 +18,119 @@
 	$effect(() => {
 		if (phase === 'playing') {
 			foundWords = [];
+			foundCells = new Set();
+			globalFoundWords = new Set();
 			totalFound = 0;
 			lastResult = null;
 		}
 	});
 
 	$effect(() => {
-		if (data?.correct) {
+		if (data?.correct && data?.path) {
 			if (!foundWords.includes(data.correct)) {
 				foundWords = [...foundWords, data.correct];
 			}
+			// Add path cells to found set
+			const newCells = new Set(foundCells);
+			for (const [r, c] of data.path) {
+				newCells.add(`${r}-${c}`);
+			}
+			foundCells = newCells;
+			globalFoundWords = new Set([...globalFoundWords, data.correct]);
 			lastResult = { word: data.correct, points: data.points, order: data.order };
-			setTimeout(() => { if (lastResult?.word === data.correct) lastResult = null; }, 2000);
+			const w = data.correct;
+			setTimeout(() => { if (lastResult?.word === w) lastResult = null; }, 2000);
 		}
 		if (data?.wrong) {
 			wrongFlash = true;
-			setTimeout(() => wrongFlash = false, 500);
+			setTimeout(() => wrongFlash = false, 400);
 		}
 		if (data?.totalFound !== undefined) {
 			totalFound = data.totalFound;
 		}
+		// Handle broadcast found events (from other players)
 		if (data?.found && typeof data.found === 'object' && data.found.word) {
+			globalFoundWords = new Set([...globalFoundWords, data.found.word]);
+			if (data.found.path) {
+				const newCells = new Set(foundCells);
+				for (const [r, c] of data.found.path) {
+					newCells.add(`${r}-${c}`);
+				}
+				foundCells = newCells;
+			}
 			totalFound = data.totalFound || totalFound;
 		}
 	});
 
-	function submitGuess() {
-		const word = guess.trim().toUpperCase();
-		if (!word) return;
-		sendAction('guess', { word });
-		guess = '';
+	function cellKey(r: number, c: number): string {
+		return `${r}-${c}`;
+	}
+
+	function isSelected(r: number, c: number): boolean {
+		return selectedPath.some(p => p[0] === r && p[1] === c);
+	}
+
+	function isFound(r: number, c: number): boolean {
+		return foundCells.has(cellKey(r, c));
+	}
+
+	function isAdjacent(a: number[], b: number[]): boolean {
+		const dr = Math.abs(a[0] - b[0]);
+		const dc = Math.abs(a[1] - b[1]);
+		return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+	}
+
+	function startSelect(r: number, c: number, e: PointerEvent) {
+		e.preventDefault();
+		(e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
+		selecting = true;
+		selectedPath = [[r, c]];
+	}
+
+	function moveSelect(e: PointerEvent) {
+		if (!selecting) return;
+		e.preventDefault();
+		const el = document.elementFromPoint(e.clientX, e.clientY);
+		if (!el || !('dataset' in el)) return;
+		const ds = (el as HTMLElement).dataset;
+		if (ds.row === undefined || ds.col === undefined) return;
+		const r = parseInt(ds.row);
+		const c = parseInt(ds.col);
+		addToPath(r, c);
+	}
+
+	function addToPath(r: number, c: number) {
+		const last = selectedPath[selectedPath.length - 1];
+		if (last[0] === r && last[1] === c) return;
+
+		// Allow backtracking to previous cell
+		if (selectedPath.length >= 2) {
+			const prev = selectedPath[selectedPath.length - 2];
+			if (prev[0] === r && prev[1] === c) {
+				selectedPath = selectedPath.slice(0, -1);
+				return;
+			}
+		}
+
+		// Don't revisit cells
+		if (selectedPath.some(p => p[0] === r && p[1] === c)) return;
+
+		// Must be adjacent to last cell
+		if (!isAdjacent(last, [r, c])) return;
+
+		selectedPath = [...selectedPath, [r, c]];
+	}
+
+	function endSelect(e: PointerEvent) {
+		if (!selecting) return;
+		e.preventDefault();
+		selecting = false;
+		if (selectedPath.length >= 3) {
+			sendAction('guess', { path: selectedPath });
+		}
+		setTimeout(() => {
+			if (!selecting) selectedPath = [];
+		}, 200);
 	}
 
 	function getOrderLabel(order: number): string {
@@ -54,6 +138,14 @@
 		if (order === 2) return 'Zweiter';
 		if (order === 3) return 'Dritter';
 		return `${order}.`;
+	}
+
+	function getSelectedWord(): string {
+		if (!data?.grid || selectedPath.length === 0) return '';
+		return selectedPath.map(([r, c]) => {
+			const row = data.grid[r];
+			return row ? row[c] || '' : '';
+		}).join('');
 	}
 </script>
 
@@ -64,15 +156,48 @@
 			<span class="stat found-count">Du: {foundWords.length}</span>
 		</div>
 
+		<!-- Word list -->
+		{#if data.words}
+			<div class="word-list">
+				{#each data.words as word}
+					<span class="word-tag" class:word-found={globalFoundWords.has(word)}>
+						{word}
+					</span>
+				{/each}
+			</div>
+		{/if}
+
+		<!-- Selected word preview -->
+		{#if selectedPath.length > 0}
+			<div class="selection-preview" class:too-short={selectedPath.length < 3}>
+				{getSelectedWord()}
+			</div>
+		{/if}
+
 		<!-- Grid -->
-		<div class="grid-container">
+		<div
+			class="grid-container"
+			class:wrong-shake={wrongFlash}
+			onpointermove={moveSelect}
+			onpointerup={endSelect}
+			onpointercancel={endSelect}
+		>
 			<div
 				class="letter-grid"
-				style="grid-template-columns: repeat({data.gridSize}, 1fr);"
+				style="grid-template-columns: repeat({data.gridSize}, 1fr); touch-action: none;"
 			>
-				{#each data.grid as row}
-					{#each row.split('') as letter}
-						<div class="cell">{letter}</div>
+				{#each data.grid as row, r}
+					{#each row.split('') as letter, c}
+						<div
+							class="cell"
+							class:cell-selected={isSelected(r, c)}
+							class:cell-found={isFound(r, c)}
+							data-row={r}
+							data-col={c}
+							onpointerdown={(e) => startSelect(r, c, e)}
+						>
+							{letter}
+						</div>
 					{/each}
 				{/each}
 			</div>
@@ -86,23 +211,6 @@
 				<span class="result-points">+{lastResult.points}</span>
 			</div>
 		{/if}
-
-		<!-- Input -->
-		<form class="guess-form" class:wrong={wrongFlash} onsubmit={e => { e.preventDefault(); submitGuess(); }}>
-			<input
-				class="input"
-				type="text"
-				placeholder="Wort eingeben..."
-				bind:value={guess}
-				maxlength="20"
-				autocomplete="off"
-				autocapitalize="characters"
-				style="text-transform: uppercase;"
-			/>
-			<button class="btn btn-primary submit-btn" type="submit" disabled={!guess.trim()}>
-				OK
-			</button>
-		</form>
 
 		<!-- Found words -->
 		{#if foundWords.length > 0}
@@ -165,17 +273,71 @@
 		font-weight: 600;
 	}
 
+	.word-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.word-tag {
+		padding: 0.15rem 0.4rem;
+		border-radius: 2px;
+		font-size: 0.65rem;
+		font-weight: 700;
+		font-family: monospace;
+		background: var(--bg-card);
+		color: var(--text-muted);
+		border: 1px solid #333;
+		transition: all 0.3s;
+	}
+
+	.word-tag.word-found {
+		background: rgba(46, 204, 113, 0.15);
+		color: #2ecc71;
+		border-color: #2ecc71;
+		text-decoration: line-through;
+	}
+
+	.selection-preview {
+		text-align: center;
+		font-family: monospace;
+		font-weight: 800;
+		font-size: 1.1rem;
+		letter-spacing: 0.1em;
+		padding: 0.3rem;
+		color: var(--primary);
+		margin-bottom: 0.25rem;
+	}
+
+	.selection-preview.too-short {
+		color: var(--text-muted);
+	}
+
 	.grid-container {
 		width: 100%;
 		overflow: hidden;
 		border: 2px solid #333;
 		border-radius: 2px;
+		transition: transform 0.1s;
+	}
+
+	.grid-container.wrong-shake {
+		animation: shake 0.3s;
+	}
+
+	@keyframes shake {
+		0%, 100% { transform: translateX(0); }
+		25% { transform: translateX(-5px); }
+		75% { transform: translateX(5px); }
 	}
 
 	.letter-grid {
 		display: grid;
 		gap: 0;
 		width: 100%;
+		user-select: none;
+		-webkit-user-select: none;
 	}
 
 	.cell {
@@ -190,6 +352,28 @@
 		border: 1px solid #222;
 		color: var(--text);
 		user-select: none;
+		-webkit-user-select: none;
+		touch-action: none;
+		cursor: pointer;
+		transition: background 0.15s, border-color 0.15s;
+	}
+
+	.cell.cell-selected {
+		background: rgba(255, 144, 0, 0.35);
+		border-color: var(--primary);
+		color: #fff;
+		transform: scale(1.05);
+		z-index: 1;
+	}
+
+	.cell.cell-found {
+		background: rgba(46, 204, 113, 0.2);
+		border-color: rgba(46, 204, 113, 0.4);
+	}
+
+	.cell.cell-found.cell-selected {
+		background: rgba(255, 144, 0, 0.35);
+		border-color: var(--primary);
 	}
 
 	.result-flash {
@@ -222,34 +406,6 @@
 	.result-points {
 		font-weight: 700;
 		color: var(--primary);
-	}
-
-	.guess-form {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 0.75rem;
-		transition: transform 0.1s;
-	}
-
-	.guess-form.wrong {
-		animation: shake 0.3s;
-	}
-
-	@keyframes shake {
-		0%, 100% { transform: translateX(0); }
-		25% { transform: translateX(-5px); }
-		75% { transform: translateX(5px); }
-	}
-
-	.guess-form .input {
-		flex: 1;
-		font-family: monospace;
-		letter-spacing: 0.05em;
-	}
-
-	.submit-btn {
-		width: auto !important;
-		padding: 0.875rem 1.25rem !important;
 	}
 
 	.found-list {

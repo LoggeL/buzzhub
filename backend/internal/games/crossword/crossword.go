@@ -14,32 +14,32 @@ func init() {
 }
 
 type WordPlacement struct {
-	Word string `json:"word"`
-	Row  int    `json:"row"`
-	Col  int    `json:"col"`
-	DRow int    `json:"dRow"` // direction: 0,1,-1
-	DCol int    `json:"dCol"`
+	Word string   `json:"word"`
+	Path [][2]int `json:"path"` // list of [row, col]
 }
 
 type FoundWord struct {
-	Word     string `json:"word"`
-	PlayerID string `json:"playerId"`
-	Order    int    `json:"order"` // 1st, 2nd, 3rd to find
-	Points   int    `json:"points"`
+	Word     string   `json:"word"`
+	PlayerID string   `json:"playerId"`
+	Order    int      `json:"order"`
+	Points   int      `json:"points"`
+	Path     [][2]int `json:"path"`
 }
 
 type Crossword struct {
-	players    []string
-	grid       [][]byte
-	gridSize   int
-	words      []WordPlacement
-	wordSet    map[string]bool
-	found      []FoundWord
-	foundBy    map[string]map[string]bool // word -> set of playerIDs who found it
-	findOrder  map[string]int             // word -> how many times found
-	scores     map[string]int
-	phase      string
-	duration   time.Duration
+	players       []string
+	grid          [][]byte
+	gridSize      int
+	words         []WordPlacement
+	wordSet       map[string]bool
+	placementMap  map[string]*WordPlacement // word -> placement
+	found         []FoundWord
+	foundBy       map[string]map[string]bool // word -> set of playerIDs
+	findOrder     map[string]int             // word -> how many times found
+	globalFound   []string                   // words found by anyone (ordered)
+	scores        map[string]int
+	phase         string
+	duration      time.Duration
 }
 
 func (c *Crossword) Info() game.GameInfo {
@@ -58,9 +58,8 @@ func (c *Crossword) Init(ctx context.Context, players []string) error {
 	c.scores = make(map[string]int)
 	c.foundBy = make(map[string]map[string]bool)
 	c.findOrder = make(map[string]int)
+	c.placementMap = make(map[string]*WordPlacement)
 	c.phase = ""
-
-	// Default settings - can be overridden via game config
 	c.gridSize = 10
 	c.duration = 90 * time.Second
 
@@ -90,7 +89,9 @@ func (c *Crossword) Configure(settings map[string]any) {
 	if changed {
 		c.foundBy = make(map[string]map[string]bool)
 		c.findOrder = make(map[string]int)
+		c.placementMap = make(map[string]*WordPlacement)
 		c.found = nil
+		c.globalFound = nil
 		c.generateGrid()
 	}
 }
@@ -114,23 +115,22 @@ func (c *Crossword) NextPhase(_ context.Context) (*game.Phase, error) {
 }
 
 func (c *Crossword) playingPhase() (*game.Phase, error) {
-	// Convert grid to string rows
 	gridStr := make([]string, len(c.grid))
 	for i, row := range c.grid {
 		gridStr[i] = string(row)
 	}
 
-	// Word list (without positions - players must find them)
 	var wordList []string
 	for _, wp := range c.words {
 		wordList = append(wordList, wp.Word)
 	}
 
 	data := map[string]any{
-		"grid":       gridStr,
-		"gridSize":   c.gridSize,
-		"wordCount":  len(c.words),
-		"duration":   c.duration.Seconds(),
+		"grid":      gridStr,
+		"gridSize":  c.gridSize,
+		"wordCount": len(c.words),
+		"words":     wordList,
+		"duration":  c.duration.Seconds(),
 	}
 
 	hostData := map[string]any{
@@ -175,32 +175,74 @@ func (c *Crossword) HandleEvent(_ context.Context, event game.PlayerEvent) (*gam
 		return nil, nil
 	}
 
-	guess, _ := event.Data["word"].(string)
-	guess = strings.ToUpper(strings.TrimSpace(guess))
-	if guess == "" {
+	// Parse path from event
+	pathRaw, ok := event.Data["path"].([]any)
+	if !ok || len(pathRaw) < 3 {
 		return nil, nil
 	}
 
-	// Check if word exists in puzzle
-	if !c.wordSet[guess] {
+	path := make([][2]int, len(pathRaw))
+	for i, p := range pathRaw {
+		pair, ok := p.([]any)
+		if !ok || len(pair) != 2 {
+			return nil, nil
+		}
+		r, ok1 := pair[0].(float64)
+		cl, ok2 := pair[1].(float64)
+		if !ok1 || !ok2 {
+			return nil, nil
+		}
+		ri, ci := int(r), int(cl)
+		if ri < 0 || ri >= c.gridSize || ci < 0 || ci >= c.gridSize {
+			return nil, nil
+		}
+		path[i] = [2]int{ri, ci}
+	}
+
+	// Validate adjacency and no duplicates
+	seen := make(map[[2]int]bool)
+	for i, pos := range path {
+		if seen[pos] {
+			return nil, nil
+		}
+		seen[pos] = true
+		if i > 0 {
+			prev := path[i-1]
+			dr := abs(pos[0] - prev[0])
+			dc := abs(pos[1] - prev[1])
+			if dr > 1 || dc > 1 || (dr == 0 && dc == 0) {
+				return nil, nil
+			}
+		}
+	}
+
+	// Find matching placement
+	placement := c.findPlacement(path)
+	if placement == nil {
 		return &game.StateUpdate{
 			PlayerUpdates: map[string]any{
-				event.PlayerID: map[string]any{"wrong": guess},
+				event.PlayerID: map[string]any{"wrong": true},
 			},
 		}, nil
 	}
+
+	guess := placement.Word
 
 	// Check if this player already found this word
 	if c.foundBy[guess] == nil {
 		c.foundBy[guess] = make(map[string]bool)
 	}
 	if c.foundBy[guess][event.PlayerID] {
-		return nil, nil // already found by this player
+		return nil, nil
 	}
 
 	c.foundBy[guess][event.PlayerID] = true
 	c.findOrder[guess]++
 	order := c.findOrder[guess]
+
+	if order == 1 {
+		c.globalFound = append(c.globalFound, guess)
+	}
 
 	// Points: base = length * 20, decreasing for later finders
 	basePoints := len(guess) * 20
@@ -223,22 +265,17 @@ func (c *Crossword) HandleEvent(_ context.Context, event game.PlayerEvent) (*gam
 		PlayerID: event.PlayerID,
 		Order:    order,
 		Points:   points,
+		Path:     placement.Path,
 	}
 	c.found = append(c.found, fw)
 
-	// Check if all words found by all players
-	allFound := true
-	for _, wp := range c.words {
-		if c.findOrder[wp.Word] == 0 {
-			allFound = false
-			break
-		}
-	}
+	// Check if all words found by at least one player
+	allFound := len(c.globalFound) >= len(c.words)
 
 	return &game.StateUpdate{
 		BroadcastUpdate: map[string]any{
-			"found": fw,
-			"totalFound": len(c.findOrder),
+			"found":      fw,
+			"totalFound": len(c.globalFound),
 			"totalWords": len(c.words),
 		},
 		PlayerUpdates: map[string]any{
@@ -246,10 +283,44 @@ func (c *Crossword) HandleEvent(_ context.Context, event game.PlayerEvent) (*gam
 				"correct": guess,
 				"points":  points,
 				"order":   order,
+				"path":    placement.Path,
 			},
 		},
 		PhaseComplete: allFound,
 	}, nil
+}
+
+func (c *Crossword) findPlacement(path [][2]int) *WordPlacement {
+	for i, wp := range c.words {
+		if pathsMatch(wp.Path, path) {
+			return &c.words[i]
+		}
+	}
+	return nil
+}
+
+func pathsMatch(a, b [][2]int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	// Forward
+	fwd := true
+	for i := range a {
+		if a[i] != b[i] {
+			fwd = false
+			break
+		}
+	}
+	if fwd {
+		return true
+	}
+	// Reverse
+	for i := range a {
+		if a[i] != b[len(b)-1-i] {
+			return false
+		}
+	}
+	return true
 }
 
 func (c *Crossword) TimerExpired(_ context.Context) (*game.StateUpdate, error) {
@@ -261,6 +332,13 @@ func (c *Crossword) Scores() map[string]int {
 }
 
 func (c *Crossword) Cleanup() {}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
 
 // Grid generation
 
@@ -287,15 +365,10 @@ func (c *Crossword) generateGrid() {
 		c.grid[i] = make([]byte, c.gridSize)
 	}
 
-	// Directions: horizontal, vertical, diagonal
-	dirs := [][2]int{{0, 1}, {1, 0}, {1, 1}, {0, -1}, {-1, 0}, {-1, -1}, {1, -1}, {-1, 1}}
-
-	// Sort words by length descending for better placement
 	shuffled := make([]string, len(wordPool))
 	copy(shuffled, wordPool)
 	rand.Shuffle(len(shuffled), func(i, j int) { shuffled[i], shuffled[j] = shuffled[j], shuffled[i] })
 
-	// Filter words that fit in grid
 	var candidates []string
 	for _, w := range shuffled {
 		if len(w) <= c.gridSize {
@@ -305,8 +378,8 @@ func (c *Crossword) generateGrid() {
 
 	c.words = nil
 	c.wordSet = make(map[string]bool)
+	c.placementMap = make(map[string]*WordPlacement)
 
-	// Target word count based on grid size
 	targetWords := c.gridSize + 2
 	if targetWords > 20 {
 		targetWords = 20
@@ -316,8 +389,9 @@ func (c *Crossword) generateGrid() {
 		if len(c.words) >= targetWords {
 			break
 		}
-		if c.tryPlace(word, dirs) {
+		if c.tryPlace(word) {
 			c.wordSet[word] = true
+			c.placementMap[word] = &c.words[len(c.words)-1]
 		}
 	}
 
@@ -332,37 +406,81 @@ func (c *Crossword) generateGrid() {
 	}
 }
 
-func (c *Crossword) tryPlace(word string, dirs [][2]int) bool {
+func (c *Crossword) tryPlace(word string) bool {
 	upper := strings.ToUpper(word)
 	wLen := len(upper)
 
-	// Shuffle starting positions and directions
-	type attempt struct {
-		row, col, dr, dc int
-	}
-	var attempts []attempt
+	// Generate all possible paths (straight + L-shaped)
+	type pathOpt [][2]int
+	var options []pathOpt
+
+	// Straight paths in 8 directions
+	dirs := [][2]int{{0, 1}, {1, 0}, {1, 1}, {0, -1}, {-1, 0}, {-1, -1}, {1, -1}, {-1, 1}}
 	for _, d := range dirs {
 		for r := 0; r < c.gridSize; r++ {
 			for col := 0; col < c.gridSize; col++ {
-				attempts = append(attempts, attempt{r, col, d[0], d[1]})
+				path := make([][2]int, 0, wLen)
+				valid := true
+				for k := 0; k < wLen; k++ {
+					nr, nc := r+d[0]*k, col+d[1]*k
+					if nr < 0 || nr >= c.gridSize || nc < 0 || nc >= c.gridSize {
+						valid = false
+						break
+					}
+					path = append(path, [2]int{nr, nc})
+				}
+				if valid {
+					options = append(options, path)
+				}
 			}
 		}
 	}
-	rand.Shuffle(len(attempts), func(i, j int) { attempts[i], attempts[j] = attempts[j], attempts[i] })
 
-	for _, a := range attempts {
-		// Check if word fits
-		endR := a.row + a.dr*(wLen-1)
-		endC := a.col + a.dc*(wLen-1)
-		if endR < 0 || endR >= c.gridSize || endC < 0 || endC >= c.gridSize {
-			continue
+	// L-shaped paths (cardinal directions only, min 4 letters)
+	if wLen >= 4 {
+		cardinals := [][2]int{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
+		for _, d1 := range cardinals {
+			for _, d2 := range cardinals {
+				// Must be perpendicular (dot product = 0) and not same/opposite
+				if d1[0]*d2[0]+d1[1]*d2[1] != 0 {
+					continue
+				}
+				for bendAt := 2; bendAt <= wLen-2; bendAt++ {
+					for r := 0; r < c.gridSize; r++ {
+						for col := 0; col < c.gridSize; col++ {
+							path := make([][2]int, 0, wLen)
+							valid := true
+							for k := 0; k < wLen; k++ {
+								var nr, nc int
+								if k < bendAt {
+									nr = r + d1[0]*k
+									nc = col + d1[1]*k
+								} else {
+									nr = r + d1[0]*(bendAt-1) + d2[0]*(k-bendAt+1)
+									nc = col + d1[1]*(bendAt-1) + d2[1]*(k-bendAt+1)
+								}
+								if nr < 0 || nr >= c.gridSize || nc < 0 || nc >= c.gridSize {
+									valid = false
+									break
+								}
+								path = append(path, [2]int{nr, nc})
+							}
+							if valid {
+								options = append(options, path)
+							}
+						}
+					}
+				}
+			}
 		}
+	}
 
+	rand.Shuffle(len(options), func(i, j int) { options[i], options[j] = options[j], options[i] })
+
+	for _, path := range options {
 		ok := true
-		for k := 0; k < wLen; k++ {
-			r := a.row + a.dr*k
-			cl := a.col + a.dc*k
-			cell := c.grid[r][cl]
+		for k, pos := range path {
+			cell := c.grid[pos[0]][pos[1]]
 			if cell != 0 && cell != upper[k] {
 				ok = false
 				break
@@ -373,18 +491,13 @@ func (c *Crossword) tryPlace(word string, dirs [][2]int) bool {
 		}
 
 		// Place word
-		for k := 0; k < wLen; k++ {
-			r := a.row + a.dr*k
-			cl := a.col + a.dc*k
-			c.grid[r][cl] = upper[k]
+		for k, pos := range path {
+			c.grid[pos[0]][pos[1]] = upper[k]
 		}
 
 		c.words = append(c.words, WordPlacement{
 			Word: upper,
-			Row:  a.row,
-			Col:  a.col,
-			DRow: a.dr,
-			DCol: a.dc,
+			Path: path,
 		})
 		return true
 	}
