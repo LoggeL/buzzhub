@@ -17,6 +17,7 @@ import (
 	_ "github.com/logge/buzzhub/internal/games/crossword"
 	_ "github.com/logge/buzzhub/internal/games/drawing"
 	_ "github.com/logge/buzzhub/internal/games/quiz"
+	_ "github.com/logge/buzzhub/internal/games/codenames"
 	_ "github.com/logge/buzzhub/internal/games/voting"
 
 	"github.com/zishang520/socket.io/v2/socket"

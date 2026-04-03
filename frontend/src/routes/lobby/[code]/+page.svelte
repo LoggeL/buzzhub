@@ -13,6 +13,7 @@
 		{ id: 'bluff', name: 'Bluff Master', desc: 'Steck es den anderen! Wer schluckt die falsche Antwort?', icon: '🥵', min: 3, duration: '10:02', views: '2.1M', thumb: '#9b59b6' },
 		{ id: 'drawing', name: 'Nacktes Zeichnen', desc: 'Alle starren auf deinen Stift... Zeichne und lass sie kommen!', icon: '🫦', min: 3, duration: '12:45', views: '943K', thumb: '#2ecc71' },
 		{ id: 'crossword', name: 'Woerter Suche', desc: 'Finde versteckte Woerter bevor es die anderen tun! Je laenger desto besser...', icon: '💦', min: 2, duration: '3:00', views: '3.4M', thumb: '#e67e22', configurable: true },
+		{ id: 'codenames', name: 'Geheime Woerter', desc: 'Zwei Teams. Ein Hinweis. Wer findet alle seine Agenten zuerst?', icon: '🕵️', min: 4, duration: '15:00', views: '4.7M', thumb: '#c0392b' },
 	];
 
 	let lobbyData = $state<Lobby | null>(null);

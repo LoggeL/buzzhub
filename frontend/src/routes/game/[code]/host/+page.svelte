@@ -154,6 +154,69 @@
 			{/if}
 		</div>
 
+	{:else if phase === 'assign' && data}
+		<div class="host-codenames">
+			<h2>Team-Zuordnung</h2>
+			<div class="cn-teams">
+				<div class="cn-team cn-red">
+					<h3>Team Rot</h3>
+					{#if data.teams}
+						{#each Object.entries(data.teams) as [pid, team]}
+							{#if team === 'red'}
+								<div class="cn-member">
+									{pid}
+									{#if data.spymasters?.includes(pid)}
+										<span class="cn-spy">SPY</span>
+									{/if}
+								</div>
+							{/if}
+						{/each}
+					{/if}
+				</div>
+				<div class="cn-team cn-blue">
+					<h3>Team Blau</h3>
+					{#if data.teams}
+						{#each Object.entries(data.teams) as [pid, team]}
+							{#if team === 'blue'}
+								<div class="cn-member">
+									{pid}
+									{#if data.spymasters?.includes(pid)}
+										<span class="cn-spy">SPY</span>
+									{/if}
+								</div>
+							{/if}
+						{/each}
+					{/if}
+				</div>
+			</div>
+		</div>
+
+	{:else if (phase === 'hint' || phase === 'guess') && data?.cards}
+		<div class="host-codenames">
+			<div class="cn-status">
+				<span class="cn-turn cn-{data.currentTeam}">
+					{data.currentTeam === 'red' ? 'ROT' : 'BLAU'} ist dran
+				</span>
+				<span class="cn-remaining">
+					<span class="cn-r">{data.redLeft}</span> / <span class="cn-b">{data.blueLeft}</span>
+				</span>
+			</div>
+			{#if phase === 'guess' && data.hint}
+				<div class="cn-hint-display">
+					<span class="cn-hint-word">{data.hint}</span>
+					<span class="cn-hint-num">{data.hintNum}</span>
+					<span class="cn-guesses">({data.guessesLeft} uebrig)</span>
+				</div>
+			{/if}
+			<div class="cn-grid">
+				{#each data.cards as card}
+					<div class="cn-card cn-{card.color}" class:cn-revealed={card.revealed}>
+						<span>{card.word}</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+
 	{:else if (phase === 'results' || phase === 'scoreboard' || phase === 'end') && data}
 		<div class="host-scores">
 			<h2>{data.final ? 'Endergebnis' : 'Zwischenstand'}</h2>
@@ -408,4 +471,135 @@
 	.rank { font-weight: 700; color: var(--text-muted); min-width: 3rem; }
 	.name { flex: 1; font-weight: 600; text-align: left; }
 	.score { font-weight: 700; color: var(--primary); }
+
+	/* Codenames Host */
+	.host-codenames {
+		max-width: 800px;
+		width: 100%;
+	}
+
+	.host-codenames h2 {
+		font-size: 2rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.cn-teams {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+	}
+
+	.cn-team {
+		padding: 1.5rem;
+		border-radius: var(--radius);
+		background: var(--bg-card);
+	}
+
+	.cn-team h3 {
+		font-size: 1.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.cn-red h3 { color: #e74c3c; }
+	.cn-blue h3 { color: #3498db; }
+
+	.cn-member {
+		padding: 0.75rem 1rem;
+		background: rgba(255,255,255,0.05);
+		border-radius: var(--radius-sm);
+		margin-bottom: 0.5rem;
+		font-size: 1.2rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.cn-spy {
+		font-size: 0.7rem;
+		background: #f39c12;
+		color: #000;
+		padding: 0.15rem 0.5rem;
+		border-radius: 3px;
+		font-weight: 800;
+	}
+
+	.cn-status {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+		font-size: 1.5rem;
+	}
+
+	.cn-turn {
+		font-weight: 800;
+		padding: 0.4rem 1rem;
+		border-radius: var(--radius-sm);
+	}
+
+	.cn-turn.cn-red { background: rgba(231,76,60,0.2); color: #e74c3c; }
+	.cn-turn.cn-blue { background: rgba(52,152,219,0.2); color: #3498db; }
+
+	.cn-remaining { font-weight: 700; }
+	.cn-r { color: #e74c3c; }
+	.cn-b { color: #3498db; }
+
+	.cn-hint-display {
+		text-align: center;
+		margin-bottom: 1rem;
+		padding: 0.75rem;
+		background: var(--bg-card);
+		border-radius: var(--radius-sm);
+	}
+
+	.cn-hint-word {
+		font-size: 2rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.cn-hint-num {
+		font-size: 2rem;
+		font-weight: 800;
+		color: var(--primary);
+		margin-left: 0.75rem;
+	}
+
+	.cn-guesses {
+		font-size: 1rem;
+		color: var(--text-muted);
+		margin-left: 0.5rem;
+	}
+
+	.cn-grid {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 6px;
+		max-width: 650px;
+		margin: 0 auto;
+	}
+
+	.cn-card {
+		aspect-ratio: 1.4;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 4px;
+		font-weight: 700;
+		font-size: 1rem;
+		text-align: center;
+		padding: 4px;
+		border: 3px solid transparent;
+	}
+
+	.cn-card.cn-red { background: rgba(231,76,60,0.2); border-color: #e74c3c; }
+	.cn-card.cn-blue { background: rgba(52,152,219,0.2); border-color: #3498db; }
+	.cn-card.cn-neutral { background: rgba(189,183,160,0.2); border-color: #bdb7a0; }
+	.cn-card.cn-assassin { background: rgba(30,30,30,0.8); border-color: #555; color: #fff; }
+
+	.cn-card.cn-revealed.cn-red { background: #e74c3c; color: #fff; }
+	.cn-card.cn-revealed.cn-blue { background: #3498db; color: #fff; }
+	.cn-card.cn-revealed.cn-neutral { background: #8b8472; color: #fff; }
+	.cn-card.cn-revealed.cn-assassin { background: #1a1a1a; color: #e74c3c; }
 </style>

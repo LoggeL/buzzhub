@@ -10,6 +10,7 @@
 	import BluffPlayer from '$lib/components/games/bluff/BluffPlayer.svelte';
 	import DrawingPlayer from '$lib/components/games/drawing/DrawingPlayer.svelte';
 	import CrosswordPlayer from '$lib/components/games/crossword/CrosswordPlayer.svelte';
+	import CodenamesPlayer from '$lib/components/games/codenames/CodenamesPlayer.svelte';
 
 	let gameId = $state('');
 	let phase = $state('');
@@ -22,6 +23,7 @@
 		bluff: BluffPlayer,
 		drawing: DrawingPlayer,
 		crossword: CrosswordPlayer,
+		codenames: CodenamesPlayer,
 	};
 
 	onMount(() => {
