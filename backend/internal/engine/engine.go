@@ -77,7 +77,15 @@ func (e *Engine) StartGame(ctx context.Context, code, gameID string) error {
 	e.sessions[code] = session
 	e.mu.Unlock()
 
-	return e.advancePhase(ctx, session)
+	// Delay first phase so clients have time to navigate to the game page
+	go func() {
+		time.Sleep(2 * time.Second)
+		if err := e.advancePhase(context.Background(), session); err != nil {
+			log.Printf("first phase error for %s: %v", code, err)
+		}
+	}()
+
+	return nil
 }
 
 func (e *Engine) HandleEvent(ctx context.Context, code string, event game.PlayerEvent) error {
@@ -87,21 +95,44 @@ func (e *Engine) HandleEvent(ctx context.Context, code string, event game.Player
 	}
 
 	session.mu.Lock()
-	defer session.mu.Unlock()
 
 	update, err := session.Game.HandleEvent(ctx, event)
 	if err != nil {
+		session.mu.Unlock()
 		return err
 	}
 
-	if update != nil && e.onEmit != nil {
-		e.onEmit(code, update, nil)
-
-		if update.GameOver {
-			e.endGame(ctx, session)
-		}
+	if update == nil {
+		session.mu.Unlock()
+		return nil
 	}
 
+	if e.onEmit != nil {
+		e.onEmit(code, update, nil)
+	}
+
+	if update.GameOver {
+		session.mu.Unlock()
+		e.endGame(ctx, session)
+		return nil
+	}
+
+	if update.PhaseComplete {
+		if session.Timer != nil {
+			session.Timer.Stop()
+		}
+		session.mu.Unlock()
+		// Small delay so clients see the "all answered" state
+		go func() {
+			time.Sleep(500 * time.Millisecond)
+			if err := e.advancePhase(context.Background(), session); err != nil {
+				log.Printf("auto-advance error for %s: %v", code, err)
+			}
+		}()
+		return nil
+	}
+
+	session.mu.Unlock()
 	return nil
 }
 

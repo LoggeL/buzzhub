@@ -29,12 +29,13 @@ type PlayerEvent struct {
 }
 
 type StateUpdate struct {
-	Phase      *Phase
-	Scores     map[string]int
-	HostUpdate any
-	PlayerUpdates map[string]any
+	Phase           *Phase
+	Scores          map[string]int
+	HostUpdate      any
+	PlayerUpdates   map[string]any
 	BroadcastUpdate any
-	GameOver   bool
+	GameOver        bool
+	PhaseComplete   bool // all players acted, advance immediately
 }
 
 type Game interface {

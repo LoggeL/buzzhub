@@ -199,6 +199,7 @@ func (v *Voting) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.S
 				"submittedCount": len(v.submissions),
 				"totalPlayers":   len(v.players),
 			},
+			PhaseComplete: len(v.submissions) >= len(v.players),
 		}, nil
 
 	case "vote":
@@ -215,6 +216,7 @@ func (v *Voting) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.S
 				"votedCount":   len(v.votes),
 				"totalPlayers": len(v.players),
 			},
+			PhaseComplete: len(v.votes) >= len(v.players),
 		}, nil
 	}
 	return nil, nil

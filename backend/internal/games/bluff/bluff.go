@@ -213,6 +213,7 @@ func (b *Bluff) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.St
 				"submittedCount": len(b.fakeAnswers),
 				"totalPlayers":   len(b.players),
 			},
+			PhaseComplete: len(b.fakeAnswers) >= len(b.players),
 		}, nil
 
 	case "guess":
@@ -229,6 +230,7 @@ func (b *Bluff) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.St
 				"guessedCount": len(b.guesses),
 				"totalPlayers": len(b.players),
 			},
+			PhaseComplete: len(b.guesses) >= len(b.players),
 		}, nil
 	}
 	return nil, nil

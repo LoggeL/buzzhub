@@ -167,12 +167,14 @@ func (q *Quiz) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.Sta
 
 	q.answers[event.PlayerID] = int(answerIdx)
 
-	// Notify how many have answered
+	allAnswered := len(q.answers) >= len(q.players)
+
 	update := &game.StateUpdate{
 		BroadcastUpdate: map[string]any{
 			"answeredCount": len(q.answers),
 			"totalPlayers":  len(q.players),
 		},
+		PhaseComplete: allAnswered,
 	}
 
 	return update, nil

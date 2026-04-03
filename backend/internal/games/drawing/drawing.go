@@ -198,15 +198,17 @@ func (d *Drawing) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.
 			d.scores[event.PlayerID] += guesserPoints
 			d.scores[drawerID] += 50
 
+			allGuessed := len(d.guesses) >= len(d.players)-1
 			return &game.StateUpdate{
 				BroadcastUpdate: map[string]any{
-					"correctGuess": event.PlayerID,
-					"guessedCount": len(d.guesses),
+					"correctGuess":  event.PlayerID,
+					"guessedCount":  len(d.guesses),
 					"totalGuessers": len(d.players) - 1,
 				},
 				PlayerUpdates: map[string]any{
 					event.PlayerID: map[string]any{"correct": true, "points": guesserPoints},
 				},
+				PhaseComplete: allGuessed,
 			}, nil
 		}
 

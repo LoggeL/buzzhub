@@ -8,10 +8,10 @@
 	import type { Lobby } from '$lib/stores/lobby';
 
 	const GAMES = [
-		{ id: 'quiz', name: 'Quiz Battle', desc: 'Beantworte Fragen schneller als alle anderen!', icon: '🧠', min: 2 },
-		{ id: 'voting', name: 'Abstimmung', desc: 'Schreibe die witzigste Antwort!', icon: '🏆', min: 3 },
-		{ id: 'bluff', name: 'Bluff Master', desc: 'Taeuschen deine Mitspieler mit falschen Antworten!', icon: '🎭', min: 3 },
-		{ id: 'drawing', name: 'Kritzelei', desc: 'Zeichne und lass die anderen raten!', icon: '✏️', min: 3 },
+		{ id: 'quiz', name: 'Quiz Battle', desc: 'Beantworte Fragen schneller als alle anderen!', icon: '🧠', min: 2, duration: '6:30', views: '1.2M', thumb: '#e74c3c' },
+		{ id: 'voting', name: 'Abstimmung', desc: 'Schreibe die witzigste Antwort und sammle Stimmen!', icon: '🏆', min: 3, duration: '8:15', views: '856K', thumb: '#f39c12' },
+		{ id: 'bluff', name: 'Bluff Master', desc: 'Taeuschen deine Mitspieler mit falschen Antworten!', icon: '🎭', min: 3, duration: '10:02', views: '2.1M', thumb: '#9b59b6' },
+		{ id: 'drawing', name: 'Kritzelei', desc: 'Zeichne auf deinem Handy und lass die anderen raten!', icon: '✏️', min: 3, duration: '12:45', views: '943K', thumb: '#2ecc71' },
 	];
 
 	let lobbyData = $state<Lobby | null>(null);
@@ -128,30 +128,38 @@
 			</div>
 		</div>
 
-		<!-- Game Selection (Host only) -->
-		{#if isHost}
-			<div class="card game-select-card">
-				<h3>Spiel waehlen</h3>
-				<div class="game-grid">
-					{#each GAMES as g}
-						{@const disabled = lobbyData.players.length < g.min}
-						<button
-							class="game-tile"
-							class:selected={lobbyData.gameId === g.id}
-							class:disabled
-							onclick={() => !disabled && selectGame(g.id)}
-						>
-							<span class="game-icon">{g.icon}</span>
-							<span class="game-name">{g.name}</span>
-							<span class="game-desc">{g.desc}</span>
-							{#if disabled}
-								<span class="game-min">Min. {g.min} Spieler</span>
+		<!-- Game Selection -->
+		<div class="video-section">
+			<div class="video-grid">
+				{#each GAMES as g}
+					{@const disabled = !isHost || lobbyData.players.length < g.min}
+					<button
+						class="video-card"
+						class:selected={lobbyData.gameId === g.id}
+						class:disabled
+						onclick={() => !disabled && selectGame(g.id)}
+					>
+						<div class="thumb" style="background: {g.thumb}">
+							<span class="thumb-icon">{g.icon}</span>
+							<span class="thumb-duration">{g.duration}</span>
+							{#if lobbyData.gameId === g.id}
+								<div class="thumb-selected-badge">AUSGEWAEHLT</div>
 							{/if}
-						</button>
-					{/each}
-				</div>
+							{#if disabled && isHost}
+								<div class="thumb-overlay">Min. {g.min} Spieler</div>
+							{/if}
+						</div>
+						<div class="video-info">
+							<div class="video-title">{g.name}</div>
+							<div class="video-channel">BuzzHub Originals</div>
+							<div class="video-meta">{g.views} Aufrufe</div>
+						</div>
+					</button>
+				{/each}
 			</div>
+		</div>
 
+		{#if isHost}
 			<button
 				class="btn btn-primary start-btn"
 				disabled={!lobbyData.gameId}
@@ -208,12 +216,12 @@
 		margin-top: 0.25rem;
 	}
 
-	.players-card, .game-select-card, .waiting-card {
+	.players-card, .waiting-card {
 		width: 100%;
 		margin-top: 1rem;
 	}
 
-	.players-card h3, .game-select-card h3 {
+	.players-card h3 {
 		font-size: 1rem;
 		color: var(--text-muted);
 		margin-bottom: 0.75rem;
@@ -283,58 +291,113 @@
 		color: var(--danger);
 	}
 
-	.game-grid {
+	.video-section {
+		width: 100%;
+		margin-top: 1rem;
+	}
+
+	.video-grid {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
+		gap: 0.5rem;
 	}
 
-	.game-tile {
+	.video-card {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		gap: 0.25rem;
-		padding: 1rem 0.5rem;
-		background: var(--bg-input);
-		border-radius: var(--radius);
-		border: 2px solid transparent;
+		background: none;
 		color: var(--text);
-		transition: all 0.2s;
+		text-align: left;
+		padding: 0;
+		border: none;
+		transition: opacity 0.2s;
 	}
 
-	.game-tile:hover:not(.disabled) {
-		border-color: var(--primary);
-	}
-
-	.game-tile.selected {
-		border-color: var(--primary);
-		background: rgba(233, 69, 96, 0.1);
-	}
-
-	.game-tile.disabled {
-		opacity: 0.4;
+	.video-card.disabled {
+		opacity: 0.35;
 		cursor: not-allowed;
 	}
 
-	.game-icon {
-		font-size: 2rem;
+	.thumb {
+		position: relative;
+		aspect-ratio: 16/9;
+		border-radius: 2px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
 	}
 
-	.game-name {
+	.thumb-icon {
+		font-size: 2.5rem;
+		filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+	}
+
+	.thumb-duration {
+		position: absolute;
+		bottom: 4px;
+		right: 4px;
+		background: rgba(0,0,0,0.8);
+		color: #fff;
+		font-size: 0.7rem;
+		font-weight: 700;
+		padding: 1px 4px;
+		border-radius: 2px;
+	}
+
+	.thumb-selected-badge {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		background: var(--primary);
+		color: #000;
+		font-size: 0.6rem;
+		font-weight: 800;
+		padding: 2px 0;
+		text-align: center;
+		letter-spacing: 0.05em;
+	}
+
+	.thumb-overlay {
+		position: absolute;
+		inset: 0;
+		background: rgba(0,0,0,0.7);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.75rem;
 		font-weight: 600;
-		font-size: 0.9rem;
+		color: var(--primary);
 	}
 
-	.game-desc {
+	.video-card.selected .thumb {
+		outline: 2px solid var(--primary);
+	}
+
+	.video-info {
+		padding: 0.35rem 0.1rem;
+	}
+
+	.video-title {
+		font-size: 0.8rem;
+		font-weight: 700;
+		line-height: 1.3;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.video-channel {
 		font-size: 0.7rem;
 		color: var(--text-muted);
-		line-height: 1.3;
+		margin-top: 0.15rem;
 	}
 
-	.game-min {
+	.video-meta {
 		font-size: 0.65rem;
-		color: var(--warning);
+		color: var(--text-muted);
 	}
 
 	.start-btn {
