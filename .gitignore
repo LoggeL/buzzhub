@@ -1,0 +1,7 @@
+node_modules/
+frontend/build/
+frontend/.svelte-kit/
+backend/buzzhub
+*.exe
+.env
+.DS_Store

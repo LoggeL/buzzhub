@@ -1,0 +1,20 @@
+services:
+  buzzhub:
+    build: .
+    ports:
+      - "3456:3000"
+    environment:
+      - REDIS_URL=redis:6379
+      - PORT=3000
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
