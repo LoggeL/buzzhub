@@ -178,6 +178,8 @@
 		<div
 			class="grid-container"
 			class:wrong-shake={wrongFlash}
+			role="application"
+			aria-label="Woertersuche Spielfeld"
 			onpointermove={moveSelect}
 			onpointerup={endSelect}
 			onpointercancel={endSelect}
@@ -194,6 +196,9 @@
 							class:cell-found={isFound(r, c)}
 							data-row={r}
 							data-col={c}
+							role="button"
+							tabindex="-1"
+							aria-label={`Buchstabe ${letter}, Zeile ${r + 1}, Spalte ${c + 1}`}
 							onpointerdown={(e) => startSelect(r, c, e)}
 						>
 							{letter}

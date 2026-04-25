@@ -16,6 +16,7 @@
 	let phase = $state('');
 	let data = $state<any>(null);
 	let timerVal = $state(0);
+	let timerMax = $state(1);
 
 	const gameComponents: Record<string, any> = {
 		quiz: QuizPlayer,
@@ -45,7 +46,8 @@
 		});
 
 		socket.on('game:timer', (msg: any) => {
-			startTimer(Math.floor(msg.duration));
+			timerMax = Math.max(1, Math.floor(msg.duration));
+			startTimer(timerMax);
 		});
 
 		socket.on('game:end', (msg: any) => {
@@ -83,7 +85,7 @@
 <div class="page">
 	{#if timerVal > 0}
 		<div class="timer-bar">
-			<div class="timer-bar-fill" style="width: {(timerVal / 15) * 100}%"></div>
+			<div class="timer-bar-fill" style="width: {Math.min(100, (timerVal / timerMax) * 100)}%"></div>
 		</div>
 		<div class="timer-text">{timerVal}s</div>
 	{/if}
