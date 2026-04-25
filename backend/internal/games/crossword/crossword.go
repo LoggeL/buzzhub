@@ -27,29 +27,29 @@ type FoundWord struct {
 }
 
 type Crossword struct {
-	players       []string
-	grid          [][]byte
-	gridSize      int
-	words         []WordPlacement
-	wordSet       map[string]bool
-	placementMap  map[string]*WordPlacement // word -> placement
-	found         []FoundWord
-	foundBy       map[string]map[string]bool // word -> set of playerIDs
-	findOrder     map[string]int             // word -> how many times found
-	globalFound   []string                   // words found by anyone (ordered)
-	scores        map[string]int
-	phase         string
-	duration      time.Duration
+	players      []string
+	grid         [][]byte
+	gridSize     int
+	words        []WordPlacement
+	wordSet      map[string]bool
+	placementMap map[string]*WordPlacement // word -> placement
+	found        []FoundWord
+	foundBy      map[string]map[string]bool // word -> set of playerIDs
+	findOrder    map[string]int             // word -> how many times found
+	globalFound  []string                   // words found by anyone (ordered)
+	scores       map[string]int
+	phase        string
+	duration     time.Duration
 }
 
 func (c *Crossword) Info() game.GameInfo {
 	return game.GameInfo{
 		ID:          "crossword",
-		Name:        "Woertersuche",
-		Description: "Finde versteckte Woerter im Buchstabengitter!",
+		Name:        "Versteckte Woerter",
+		Description: "Finde die geheimen Woerter im Buchstabengitter.",
 		MinPlayers:  2,
 		MaxPlayers:  16,
-		Icon:        "grid",
+		Icon:        "splash",
 	}
 }
 

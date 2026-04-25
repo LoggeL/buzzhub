@@ -96,6 +96,10 @@
 			hostCtx.stroke();
 		}
 	}
+
+	function playerName(pid: string): string {
+		return lobbyData?.players?.find((player: any) => player.id === pid)?.name ?? pid;
+	}
 </script>
 
 <div class="host-page">
@@ -150,6 +154,16 @@
 						<div class="submission-card">{sub.answer}</div>
 					{/each}
 				</div>
+			{/if}
+		</div>
+
+	{:else if phase === 'pick' && data}
+		<div class="host-would-rather">
+			<div class="round-num">Runde {data.roundNum}/{data.totalRounds}</div>
+			<h2>{data.prompt}</h2>
+			<p class="sub">Spieler waehlen, wer am ehesten passt...</p>
+			{#if data.votedCount}
+				<div class="host-pick-count">{data.votedCount}/{data.totalPlayers}</div>
 			{/if}
 		</div>
 
@@ -218,9 +232,30 @@
 			</div>
 		</div>
 
+	{:else if phase === 'playing' && data?.letters}
+		<div class="host-wordtrails">
+			<h2>{data.modeName}</h2>
+			<p class="sub">{data.theme}</p>
+			<div class="host-letter-row">
+				{#each data.letters as letter}
+					<div class="host-letter">{letter}</div>
+				{/each}
+			</div>
+			{#if data.slots}
+				<div class="host-trail-slots">
+					{#each data.slots as slot}
+						<div class="host-trail-slot" class:found={slot.found}>
+							<span>{slot.word}</span>
+							<small>{slot.length}</small>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+
 	{:else if phase === 'playing' && data}
 		<div class="host-crossword">
-			<h2>Woertersuche</h2>
+			<h2>Versteckte Woerter</h2>
 			{#if data.grid}
 				<div class="host-grid" style="grid-template-columns: repeat({data.gridSize}, 1fr);">
 					{#each data.grid as row}
@@ -296,7 +331,7 @@
 					{#each Object.entries(data.scores).sort((a, b) => (b[1] as number) - (a[1] as number)) as [pid, score], i}
 						<div class="host-score-row" class:winner={i === 0}>
 							<span class="rank">#{i + 1}</span>
-							<span class="name">{pid}</span>
+							<span class="name">{playerName(pid)}</span>
 							<span class="score">{score}</span>
 						</div>
 					{/each}
@@ -383,7 +418,7 @@
 		font-size: 1.1rem;
 	}
 
-	.host-question, .host-reveal, .host-prompt, .host-vote, .host-drawing, .host-scores {
+	.host-question, .host-reveal, .host-prompt, .host-vote, .host-would-rather, .host-drawing, .host-wordtrails, .host-scores {
 		max-width: 800px;
 		width: 100%;
 	}
@@ -394,10 +429,21 @@
 		font-size: 1.1rem;
 	}
 
-	.host-question h2, .host-prompt h2, .host-vote h2 {
+	.host-question h2, .host-prompt h2, .host-vote h2, .host-would-rather h2 {
 		font-size: 2.2rem;
 		margin-bottom: 2rem;
 		line-height: 1.3;
+	}
+
+	.host-pick-count {
+		width: fit-content;
+		margin: 2rem auto 0;
+		padding: 0.6rem 1.25rem;
+		border: 2px solid var(--primary);
+		border-radius: var(--radius-sm);
+		color: var(--primary);
+		font-size: 1.5rem;
+		font-weight: 900;
 	}
 
 	.host-options {
@@ -469,6 +515,65 @@
 	.host-crossword {
 		max-width: 700px;
 		width: 100%;
+	}
+
+	.host-wordtrails h2 {
+		font-size: 2rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.host-letter-row {
+		display: flex;
+		gap: 0.75rem;
+		justify-content: center;
+		flex-wrap: wrap;
+		margin: 1.5rem 0;
+	}
+
+	.host-letter {
+		width: 4rem;
+		height: 4rem;
+		border-radius: 50%;
+		background: var(--primary);
+		color: #000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-family: monospace;
+		font-size: 2rem;
+		font-weight: 900;
+	}
+
+	.host-trail-slots {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.6rem;
+		max-width: 700px;
+		margin: 0 auto;
+	}
+
+	.host-trail-slot {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		background: var(--bg-card);
+		border: 1px solid #333;
+		border-radius: var(--radius-sm);
+		font-family: monospace;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+	}
+
+	.host-trail-slot.found {
+		background: rgba(46, 204, 113, 0.15);
+		border-color: #2ecc71;
+		color: #2ecc71;
+	}
+
+	.host-trail-slot small {
+		color: var(--text-muted);
+		letter-spacing: 0;
 	}
 
 	.host-crossword h2 {

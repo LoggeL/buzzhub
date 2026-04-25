@@ -19,23 +19,23 @@ type Question struct {
 }
 
 type Quiz struct {
-	players       []string
-	questions     []Question
-	currentQ      int
-	answers       map[string]int // playerID -> chosen option index
-	scores        map[string]int
-	totalRounds   int
-	phase         string
+	players     []string
+	questions   []Question
+	currentQ    int
+	answers     map[string]int // playerID -> chosen option index
+	scores      map[string]int
+	totalRounds int
+	phase       string
 }
 
 func (q *Quiz) Info() game.GameInfo {
 	return game.GameInfo{
 		ID:          "quiz",
-		Name:        "Quiz Battle",
-		Description: "Beantworte Fragen schneller als deine Gegner!",
+		Name:        "Heisser Quickie",
+		Description: "Drueck den Buzzer schneller als die anderen.",
 		MinPlayers:  2,
 		MaxPlayers:  16,
-		Icon:        "brain",
+		Icon:        "fire",
 	}
 }
 
@@ -91,9 +91,9 @@ func (q *Quiz) questionPhase() (*game.Phase, error) {
 	question := q.questions[q.currentQ]
 
 	data := map[string]any{
-		"question":    question.Text,
-		"options":     question.Options,
-		"questionNum": q.currentQ + 1,
+		"question":       question.Text,
+		"options":        question.Options,
+		"questionNum":    q.currentQ + 1,
 		"totalQuestions": len(q.questions),
 	}
 

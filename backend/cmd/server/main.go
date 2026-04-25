@@ -14,11 +14,14 @@ import (
 
 	// Register all games
 	_ "github.com/logge/buzzhub/internal/games/bluff"
+	_ "github.com/logge/buzzhub/internal/games/codenames"
+	_ "github.com/logge/buzzhub/internal/games/creative"
 	_ "github.com/logge/buzzhub/internal/games/crossword"
 	_ "github.com/logge/buzzhub/internal/games/drawing"
 	_ "github.com/logge/buzzhub/internal/games/quiz"
-	_ "github.com/logge/buzzhub/internal/games/codenames"
 	_ "github.com/logge/buzzhub/internal/games/voting"
+	_ "github.com/logge/buzzhub/internal/games/werwuerdeeher"
+	_ "github.com/logge/buzzhub/internal/games/wordtrails"
 
 	"github.com/zishang520/socket.io/v2/socket"
 )

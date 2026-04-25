@@ -31,11 +31,11 @@ type Bluff struct {
 func (b *Bluff) Info() game.GameInfo {
 	return game.GameInfo{
 		ID:          "bluff",
-		Name:        "Bluff Master",
-		Description: "Erfinde falsche Antworten und taeuschen deine Mitspieler!",
+		Name:        "Fake Lust",
+		Description: "Verfuehre die Runde mit falschen Antworten.",
 		MinPlayers:  3,
 		MaxPlayers:  16,
-		Icon:        "mask",
+		Icon:        "hot",
 	}
 }
 

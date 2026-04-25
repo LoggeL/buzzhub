@@ -37,11 +37,11 @@ type Codenames struct {
 func (c *Codenames) Info() game.GameInfo {
 	return game.GameInfo{
 		ID:          "codenames",
-		Name:        "Geheime Woerter",
-		Description: "Zwei Teams. Ein Hinweis. Wer findet alle seine Agenten zuerst?",
+		Name:        "Geheime Signale",
+		Description: "Zwei Teams, ein heisser Hinweis, viele verdeckte Karten.",
 		MinPlayers:  4,
 		MaxPlayers:  16,
-		Icon:        "spy",
+		Icon:        "eyes",
 	}
 }
 

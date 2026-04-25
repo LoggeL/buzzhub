@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#0b0b12"/>
+			<stop offset="0.55" stop-color="#17111f"/>
+			<stop offset="1" stop-color="#241122"/>
+		</linearGradient>
+		<linearGradient id="flame" x1="478" y1="92" x2="722" y2="430" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffb000"/>
+			<stop offset="0.5" stop-color="#ff4d6d"/>
+			<stop offset="1" stop-color="#8e44ff"/>
+		</linearGradient>
+	</defs>
+	<rect width="1200" height="630" fill="url(#bg)"/>
+	<circle cx="1020" cy="94" r="150" fill="#ffb000" opacity="0.08"/>
+	<circle cx="126" cy="530" r="190" fill="#8e44ff" opacity="0.08"/>
+	<path d="M600 82c82 96 130 168 130 250 0 94-58 153-130 153s-130-59-130-153c0-82 48-154 130-250z" fill="url(#flame)"/>
+	<path d="M518 340c0-48 36-94 82-151 46 57 82 103 82 151 0 60-35 99-82 99s-82-39-82-99z" fill="#ffe066"/>
+	<text x="600" y="464" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="116" font-weight="900" fill="#fff">Buzz<tspan fill="#ffb000">Hub</tspan></text>
+	<text x="600" y="538" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" fill="#d6d6df">Deutsche Partyspiele fuer Handy und Couch</text>
+	<rect x="80" y="72" width="1040" height="486" rx="36" fill="none" stroke="#ffb000" stroke-width="4" opacity="0.42"/>
+</svg>

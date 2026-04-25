@@ -13,26 +13,26 @@ func init() {
 }
 
 type Drawing struct {
-	players      []string
-	words        []string
-	drawOrder    []int // indices into players
-	currentTurn  int
-	totalTurns   int
-	currentWord  string
-	guesses      map[string]bool // who guessed correctly
-	strokes      []any           // accumulated strokes
-	scores       map[string]int
-	phase        string
+	players     []string
+	words       []string
+	drawOrder   []int // indices into players
+	currentTurn int
+	totalTurns  int
+	currentWord string
+	guesses     map[string]bool // who guessed correctly
+	strokes     []any           // accumulated strokes
+	scores      map[string]int
+	phase       string
 }
 
 func (d *Drawing) Info() game.GameInfo {
 	return game.GameInfo{
 		ID:          "drawing",
-		Name:        "Kritzelei",
-		Description: "Zeichne auf deinem Handy und lass die anderen raten!",
+		Name:        "Nacktes Zeichnen",
+		Description: "Alle starren auf deinen Stift und raten mit.",
 		MinPlayers:  3,
 		MaxPlayers:  16,
-		Icon:        "pencil",
+		Icon:        "lips",
 	}
 }
 
@@ -92,7 +92,7 @@ func (d *Drawing) drawPhase() (*game.Phase, error) {
 	d.strokes = nil
 	d.currentWord = d.words[d.currentTurn]
 
-	drawerIdx := d.drawOrder[d.currentTurn % len(d.drawOrder)]
+	drawerIdx := d.drawOrder[d.currentTurn%len(d.drawOrder)]
 	drawerID := d.players[drawerIdx]
 
 	// Drawer sees the word, others see "rate!"
@@ -100,16 +100,16 @@ func (d *Drawing) drawPhase() (*game.Phase, error) {
 	for _, pid := range d.players {
 		if pid == drawerID {
 			playerData[pid] = map[string]any{
-				"role":    "drawer",
-				"word":    d.currentWord,
-				"turnNum": d.currentTurn + 1,
+				"role":       "drawer",
+				"word":       d.currentWord,
+				"turnNum":    d.currentTurn + 1,
 				"totalTurns": d.totalTurns,
 			}
 		} else {
 			playerData[pid] = map[string]any{
-				"role":    "guesser",
-				"hint":    generateHint(d.currentWord),
-				"turnNum": d.currentTurn + 1,
+				"role":       "guesser",
+				"hint":       generateHint(d.currentWord),
+				"turnNum":    d.currentTurn + 1,
 				"totalTurns": d.totalTurns,
 			}
 		}
@@ -163,7 +163,7 @@ func (d *Drawing) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.
 		return nil, nil
 	}
 
-	drawerIdx := d.drawOrder[d.currentTurn % len(d.drawOrder)]
+	drawerIdx := d.drawOrder[d.currentTurn%len(d.drawOrder)]
 	drawerID := d.players[drawerIdx]
 
 	switch event.Type {
@@ -177,7 +177,7 @@ func (d *Drawing) HandleEvent(_ context.Context, event game.PlayerEvent) (*game.
 
 		// Broadcast stroke to all others (host + guessers)
 		return &game.StateUpdate{
-			HostUpdate: map[string]any{"stroke": stroke},
+			HostUpdate:      map[string]any{"stroke": stroke},
 			BroadcastUpdate: map[string]any{"stroke": stroke},
 		}, nil
 
@@ -267,12 +267,24 @@ func matchGuess(guess, word string) bool {
 			b += 32
 		}
 		// Handle umlauts
-		if a == 0xE4 || a == 0xC4 { a = 0xE4 }
-		if b == 0xE4 || b == 0xC4 { b = 0xE4 }
-		if a == 0xF6 || a == 0xD6 { a = 0xF6 }
-		if b == 0xF6 || b == 0xD6 { b = 0xF6 }
-		if a == 0xFC || a == 0xDC { a = 0xFC }
-		if b == 0xFC || b == 0xDC { b = 0xFC }
+		if a == 0xE4 || a == 0xC4 {
+			a = 0xE4
+		}
+		if b == 0xE4 || b == 0xC4 {
+			b = 0xE4
+		}
+		if a == 0xF6 || a == 0xD6 {
+			a = 0xF6
+		}
+		if b == 0xF6 || b == 0xD6 {
+			b = 0xF6
+		}
+		if a == 0xFC || a == 0xDC {
+			a = 0xFC
+		}
+		if b == 0xFC || b == 0xDC {
+			b = 0xFC
+		}
 		if a != b {
 			return false
 		}

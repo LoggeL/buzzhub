@@ -13,8 +13,13 @@
 	let answer = $state('');
 
 	$effect(() => {
-		if (phase === 'prompt') { submitted = false; answer = ''; }
-		if (phase === 'vote') { voted = false; }
+		if (phase === 'prompt') {
+			submitted = false;
+			answer = '';
+		}
+		if (phase === 'vote') {
+			voted = false;
+		}
 	});
 
 	function submit() {
@@ -34,10 +39,14 @@
 	}
 </script>
 
-<div class="voting fade-in">
+<div class="creative fade-in">
 	{#if phase === 'prompt' && data}
+		<div class="mode-name">{data.modeName}</div>
 		<div class="round-info">Runde {data.roundNum}/{data.totalRounds}</div>
-		<h2 class="prompt">{data.prompt}</h2>
+		<div class="prompt-card">
+			<div class="prompt-label">{data.promptLabel || 'Prompt'}</div>
+			<h2>{data.prompt}</h2>
+		</div>
 
 		{#if submitted}
 			<div class="submitted-msg">
@@ -48,14 +57,15 @@
 			</div>
 		{:else}
 			<form class="answer-form" onsubmit={e => { e.preventDefault(); submit(); }}>
-				<input
-					class="input"
-					type="text"
-					placeholder="Deine Antwort..."
+				<label class="input-label" for="creative-answer">{data.inputLabel || 'Antwort'}</label>
+				<textarea
+					id="creative-answer"
+					class="input answer-input"
+					placeholder={data.placeholder || 'Deine Antwort...'}
 					bind:value={answer}
-					maxlength="100"
+					maxlength="140"
 					autocomplete="off"
-				/>
+				></textarea>
 				<button class="btn btn-primary" type="submit" disabled={!answer.trim()}>
 					Absenden
 				</button>
@@ -63,7 +73,9 @@
 		{/if}
 
 	{:else if phase === 'vote' && data}
-		<h2 class="prompt">{data.prompt}</h2>
+		<div class="mode-name">{data.modeName}</div>
+		<h2 class="vote-title">{data.voteTitle || 'Beste Antwort?'}</h2>
+		<p class="prompt-small">{data.prompt}</p>
 
 		{#if voted}
 			<div class="submitted-msg">
@@ -72,7 +84,7 @@
 					<p class="count">{data.votedCount}/{data.totalPlayers}</p>
 				{/if}
 			</div>
-		{:else if data.submissions}
+		{:else if data.submissions?.length}
 			<div class="vote-options">
 				{#each data.submissions as sub}
 					<button class="vote-btn" onclick={() => vote(sub.playerId)}>
@@ -80,15 +92,23 @@
 					</button>
 				{/each}
 			</div>
+		{:else}
+			<div class="submitted-msg">
+				<p>Keine Antworten zum Abstimmen.</p>
+			</div>
 		{/if}
 
 	{:else if phase === 'results' && data}
-		<h3 class="prompt">{data.prompt}</h3>
+		<div class="mode-name">{data.modeName}</div>
+		<h3 class="vote-title">{data.prompt}</h3>
 		<div class="results">
 			{#if data.submissions && data.voteCounts}
-				{#each Object.entries(data.submissions) as [pid, answer]}
+				{#each Object.entries(data.submissions) as [pid, text]}
 					<div class="result-row">
-						<div class="result-answer">{answer}</div>
+						<div>
+							<div class="result-answer">{text}</div>
+							<div class="result-author">{playerName(pid)}</div>
+						</div>
 						<div class="result-votes">{data.voteCounts[pid] || 0} Stimmen</div>
 					</div>
 				{/each}
@@ -97,7 +117,7 @@
 
 	{:else if phase === 'scoreboard' && data}
 		<div class="scoreboard">
-			<h2>{data.final ? 'Endergebnis' : 'Zwischenstand'}</h2>
+			<h2>Endergebnis</h2>
 			{#if data.scores}
 				{#each Object.entries(data.scores).sort((a, b) => (b[1] as number) - (a[1] as number)) as [pid, score], i}
 					<div class="score-row" class:top={i === 0}>
@@ -112,46 +132,87 @@
 </div>
 
 <style>
-	.voting { width: 100%; }
+	.creative { width: 100%; }
+
+	.mode-name, .round-info, .prompt-label, .input-label, .prompt-small, .result-author {
+		color: var(--text-muted);
+	}
+
+	.mode-name {
+		text-align: center;
+		font-size: 0.75rem;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		margin-bottom: 0.35rem;
+	}
 
 	.round-info {
 		text-align: center;
-		color: var(--text-muted);
 		font-size: 0.85rem;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.75rem;
 	}
 
-	.prompt {
+	.prompt-card {
+		background: var(--bg-card);
+		border: 1px solid #333;
+		border-radius: var(--radius);
+		padding: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.prompt-label, .input-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 0.35rem;
+		display: block;
+	}
+
+	.prompt-card h2, .vote-title {
 		text-align: center;
 		font-size: 1.2rem;
-		margin-bottom: 1.5rem;
-		line-height: 1.4;
+		line-height: 1.35;
+	}
+
+	.prompt-small {
+		text-align: center;
+		font-size: 0.9rem;
+		margin: -0.75rem 0 1rem;
 	}
 
 	.answer-form {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 0.75rem;
+	}
+
+	.answer-input {
+		min-height: 5rem;
+		resize: vertical;
+		font-family: inherit;
+		line-height: 1.35;
 	}
 
 	.submitted-msg {
 		text-align: center;
-		padding: 2rem;
+		padding: 2rem 1rem;
 	}
 
 	.submitted-msg p {
-		font-size: 1.3rem;
+		font-size: 1.2rem;
 		font-weight: 600;
 	}
 
 	.count {
-		color: var(--text-muted);
 		font-size: 0.9rem !important;
 		font-weight: 400 !important;
+		color: var(--text-muted);
 		margin-top: 0.5rem;
 	}
 
-	.vote-options {
+	.vote-options, .results {
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
@@ -165,30 +226,36 @@
 		font-size: 1.05rem;
 		text-align: left;
 		border: 2px solid transparent;
-		transition: all 0.2s;
 	}
 
 	.vote-btn:hover {
 		border-color: var(--primary);
 	}
 
-	.results {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
 	.result-row {
 		display: flex;
 		justify-content: space-between;
+		gap: 0.75rem;
 		align-items: center;
 		padding: 0.75rem;
 		background: var(--bg-card);
 		border-radius: var(--radius-sm);
 	}
 
-	.result-answer { flex: 1; }
-	.result-votes { color: var(--primary); font-weight: 600; }
+	.result-answer {
+		font-weight: 600;
+	}
+
+	.result-author {
+		font-size: 0.75rem;
+		margin-top: 0.2rem;
+	}
+
+	.result-votes, .pts {
+		color: var(--primary);
+		font-weight: 700;
+		white-space: nowrap;
+	}
 
 	.scoreboard { width: 100%; }
 	.scoreboard h2 { text-align: center; margin-bottom: 1rem; }
@@ -210,5 +277,4 @@
 
 	.rank { font-weight: 700; color: var(--text-muted); min-width: 2rem; }
 	.name { flex: 1; font-weight: 500; }
-	.pts { font-weight: 700; color: var(--primary); }
 </style>

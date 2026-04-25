@@ -26,11 +26,11 @@ type Voting struct {
 func (v *Voting) Info() game.GameInfo {
 	return game.GameInfo{
 		ID:          "voting",
-		Name:        "Abstimmung",
-		Description: "Schreibe die witzigste Antwort und sammle Stimmen!",
+		Name:        "Abstimmung XXL",
+		Description: "Schreibe die laengste Antwort und sammle Stimmen.",
 		MinPlayers:  3,
 		MaxPlayers:  16,
-		Icon:        "trophy",
+		Icon:        "eggplant",
 	}
 }
 
@@ -85,8 +85,8 @@ func (v *Voting) promptPhase() (*game.Phase, error) {
 	v.votes = make(map[string]string)
 
 	data := map[string]any{
-		"prompt":     v.prompts[v.currentRound],
-		"roundNum":   v.currentRound + 1,
+		"prompt":      v.prompts[v.currentRound],
+		"roundNum":    v.currentRound + 1,
 		"totalRounds": v.totalRounds,
 	}
 

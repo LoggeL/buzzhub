@@ -11,6 +11,9 @@
 	import DrawingPlayer from '$lib/components/games/drawing/DrawingPlayer.svelte';
 	import CrosswordPlayer from '$lib/components/games/crossword/CrosswordPlayer.svelte';
 	import CodenamesPlayer from '$lib/components/games/codenames/CodenamesPlayer.svelte';
+	import CreativePlayer from '$lib/components/games/creative/CreativePlayer.svelte';
+	import WordTrailsPlayer from '$lib/components/games/wordtrails/WordTrailsPlayer.svelte';
+	import WerWuerdeEherPlayer from '$lib/components/games/werwuerdeeher/WerWuerdeEherPlayer.svelte';
 
 	let gameId = $state('');
 	let phase = $state('');
@@ -25,6 +28,18 @@
 		drawing: DrawingPlayer,
 		crossword: CrosswordPlayer,
 		codenames: CodenamesPlayer,
+		wordtrails: WordTrailsPlayer,
+		werwuerdeeher: WerWuerdeEherPlayer,
+		headlines: CreativePlayer,
+		redflags: CreativePlayer,
+		courtroom: CreativePlayer,
+		emoji: CreativePlayer,
+		wouldrather: CreativePlayer,
+		cvlies: CreativePlayer,
+		memecourt: CreativePlayer,
+		therapy: CreativePlayer,
+		passwordpanic: CreativePlayer,
+		lastwords: CreativePlayer,
 	};
 
 	onMount(() => {
@@ -80,6 +95,10 @@
 	function sendAction(type: string, actionData: Record<string, any> = {}) {
 		getSocket().emit('player:action', { type, ...actionData });
 	}
+
+	function playerName(pid: string): string {
+		return $lobby?.players.find(player => player.id === pid)?.name ?? pid;
+	}
 </script>
 
 <div class="page">
@@ -98,7 +117,7 @@
 					{#each Object.entries(data.scores).sort((a, b) => (b[1] as number) - (a[1] as number)) as [pid, score], i}
 						<div class="score-row" class:winner={i === 0}>
 							<span class="rank">#{i + 1}</span>
-							<span class="score-name">{pid}</span>
+							<span class="score-name">{playerName(pid)}</span>
 							<span class="score-val">{score}</span>
 						</div>
 					{/each}

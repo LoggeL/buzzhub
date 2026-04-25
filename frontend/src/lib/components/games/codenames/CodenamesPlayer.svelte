@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { lobby } from '$lib/stores/lobby';
+
 	let { phase, data, timerVal, sendAction }: {
 		phase: string;
 		data: any;
@@ -53,6 +55,10 @@
 
 	function isMyTurn(d: any): boolean {
 		return d?.myTeam === d?.currentTeam;
+	}
+
+	function playerName(pid: string): string {
+		return $lobby?.players.find(player => player.id === pid)?.name ?? pid;
 	}
 </script>
 
@@ -211,7 +217,7 @@
 					{#each Object.entries(data.scores).sort((a, b) => (b[1] as number) - (a[1] as number)) as [pid, score], i}
 						<div class="score-row" class:winner={i === 0}>
 							<span class="rank">#{i + 1}</span>
-							<span class="score-name">{pid}</span>
+							<span class="score-name">{playerName(pid)}</span>
 							<span class="score-val">{score}</span>
 						</div>
 					{/each}

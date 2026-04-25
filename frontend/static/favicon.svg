@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+	<title>BuzzHub</title>
+	<defs>
+		<linearGradient id="g" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffb000"/>
+			<stop offset="0.55" stop-color="#ff4d6d"/>
+			<stop offset="1" stop-color="#8e44ff"/>
+		</linearGradient>
+	</defs>
+	<rect width="64" height="64" rx="14" fill="#0b0b12"/>
+	<path d="M32 6c7 8 11 14 11 21 0 8-5 13-11 13s-11-5-11-13c0-7 4-13 11-21z" fill="url(#g)"/>
+	<path d="M25 29c0-4 3-8 7-13 4 5 7 9 7 13 0 5-3 8-7 8s-7-3-7-8z" fill="#ffe066"/>
+	<rect x="12" y="39" width="40" height="15" rx="4" fill="#15151f" stroke="#ffb000" stroke-width="3"/>
+	<path d="M20 50V43h4c2 0 3 1 3 2 0 1-.5 2-1.5 2.2C27 47.5 28 48.5 28 50c0 2-1.5 3-4 3h-4v-3zm4-4c.7 0 1-.3 1-.8s-.3-.8-1-.8h-1.4V46H24zm.2 4.6c.8 0 1.2-.3 1.2-.9s-.4-.9-1.2-.9h-1.6v1.8h1.6z" fill="#fff"/>
+	<path d="M31 53V43h2.8v3.7h3.4V43H40v10h-2.8v-3.8h-3.4V53H31z" fill="#fff"/>
+</svg>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { lobby } from '$lib/stores/lobby';
+
 	let { phase, data, timerVal, sendAction }: {
 		phase: string;
 		data: any;
@@ -147,6 +149,10 @@
 			return row ? row[c] || '' : '';
 		}).join('');
 	}
+
+	function playerName(pid: string): string {
+		return $lobby?.players.find(player => player.id === pid)?.name ?? pid;
+	}
 </script>
 
 <div class="crossword fade-in">
@@ -179,7 +185,7 @@
 			class="grid-container"
 			class:wrong-shake={wrongFlash}
 			role="application"
-			aria-label="Woertersuche Spielfeld"
+			aria-label="Versteckte Woerter Spielfeld"
 			onpointermove={moveSelect}
 			onpointerup={endSelect}
 			onpointercancel={endSelect}
@@ -249,7 +255,7 @@
 					{#each Object.entries(data.scores).sort((a, b) => (b[1] as number) - (a[1] as number)) as [pid, score], i}
 						<div class="score-row" class:top={i === 0}>
 							<span class="rank">#{i + 1}</span>
-							<span class="name">{pid}</span>
+							<span class="name">{playerName(pid)}</span>
 							<span class="pts">{score}</span>
 						</div>
 					{/each}

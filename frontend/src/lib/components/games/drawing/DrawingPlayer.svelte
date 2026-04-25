@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { lobby } from '$lib/stores/lobby';
 
 	let { phase, data, timerVal, sendAction }: {
 		phase: string;
@@ -140,6 +141,10 @@
 		ctx.fillStyle = '#1a1a2e';
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 	}
+
+	function playerName(pid: string): string {
+		return $lobby?.players.find(player => player.id === pid)?.name ?? pid;
+	}
 </script>
 
 <div class="drawing fade-in">
@@ -245,7 +250,7 @@
 				{#each Object.entries(data.scores).sort((a, b) => (b[1] as number) - (a[1] as number)) as [pid, score], i}
 					<div class="score-row" class:top={i === 0}>
 						<span class="rank">#{i + 1}</span>
-						<span class="name">{pid}</span>
+						<span class="name">{playerName(pid)}</span>
 						<span class="pts">{score}</span>
 					</div>
 				{/each}
