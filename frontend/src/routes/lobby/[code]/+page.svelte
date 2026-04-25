@@ -112,6 +112,29 @@
 		getSocket().emit('lobby:leave', {});
 		goto('/');
 	}
+
+	function aboutText(gameId: string): string {
+		const texts: Record<string, string> = {
+			quiz: 'Kurze Wissensrunden mit Tempo: Wer schnell richtig antwortet, sammelt die Punkte.',
+			voting: 'Alle schreiben Antworten, danach entscheidet die Gruppe, welche am besten trifft.',
+			bluff: 'Erfinde plausible Fake-Antworten und locke andere weg von der echten Loesung.',
+			drawing: 'Eine Person zeichnet, der Rest raet live. Je schneller der Treffer, desto besser.',
+			crossword: 'Durchsuche ein Buchstabengitter nach Woertern. Fruehe Funde bringen mehr Punkte.',
+			wordtrails: 'Baue Woerter aus einem gemeinsamen Buchstabenpool und fuelle die versteckten Slots.',
+			codenames: 'Teams geben Hinweise und decken Karten auf. Falsche Treffer helfen der Gegenseite.',
+			headlines: 'Fuellt Luecken in uebertriebene Headlines und waehlt den klickstaerksten Unsinn.',
+			redflags: 'Zu jedem Profil wird die schlimmste Warnung gesucht. Die Gruppe votet den Treffer.',
+			courtroom: 'Alle liefern Statements zu absurden Anklagen. Das ueberzeugendste Plaedoyer gewinnt.',
+			emoji: 'Aus Emoji-Ketten entstehen wilde Interpretationen. Die beste Deutung holt Stimmen.',
+			werwuerdeeher: 'Alle zeigen auf eine Person. Mehrheitswahl und richtige Einschaetzung geben Punkte.',
+			cvlies: 'Erfinde Qualifikationen fuer absurde Jobs. Die glaubwuerdigste Luege gewinnt.',
+			memecourt: 'Alle schreiben Captions zu fiktiven Bildern. Die viralste Zeile bekommt die Stimmen.',
+			therapy: 'Die Runde therapiert Alltagsdramen mit maximal fragwuerdigen Ratschlaegen.',
+			passwordpanic: 'Errate das wahrscheinlichste Katastrophen-Passwort fuer absurde Accounts.',
+			lastwords: 'Zu jeder Szene wird der letzte Satz vor dem Chaos gesucht. Beste Pointe gewinnt.',
+		};
+		return texts[gameId] ?? 'Kurzer Party-Modus fuer schnelle Runden mit der ganzen Lobby.';
+	}
 </script>
 
 <div class="page">
@@ -165,6 +188,8 @@
 					>
 						<div class="thumb" style="background: {g.thumb}">
 							<span class="thumb-icon">{g.icon}</span>
+							<span class="info-badge" aria-label="Info zu {g.name}">i</span>
+							<span class="about-popover">{aboutText(g.id)}</span>
 							<span class="thumb-duration">{g.duration}</span>
 							{#if lobbyData.gameId === g.id}
 								<div class="thumb-selected-badge">AUSGEWAEHLT</div>
@@ -176,6 +201,7 @@
 						<div class="video-info">
 							<div class="video-title">{g.name}</div>
 							<div class="video-channel">BuzzHub Originals</div>
+							<div class="video-about">{aboutText(g.id)}</div>
 							<div class="video-meta">{g.views} Aufrufe</div>
 						</div>
 					</button>
@@ -403,6 +429,51 @@
 		border-radius: 2px;
 	}
 
+	.info-badge {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		width: 1.25rem;
+		height: 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0,0,0,0.72);
+		color: var(--primary);
+		border: 1px solid rgba(255, 144, 0, 0.55);
+		border-radius: 50%;
+		font-size: 0.78rem;
+		font-weight: 900;
+		font-style: italic;
+		z-index: 3;
+	}
+
+	.about-popover {
+		position: absolute;
+		left: 6px;
+		right: 6px;
+		bottom: 28px;
+		padding: 0.5rem 0.55rem;
+		background: rgba(0,0,0,0.86);
+		color: #fff;
+		border: 1px solid rgba(255, 144, 0, 0.45);
+		border-radius: var(--radius-sm);
+		font-size: 0.68rem;
+		font-weight: 700;
+		line-height: 1.25;
+		opacity: 0;
+		transform: translateY(4px);
+		pointer-events: none;
+		transition: opacity 0.16s, transform 0.16s;
+		z-index: 2;
+	}
+
+	.video-card:hover .about-popover,
+	.video-card:focus-visible .about-popover {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
 	.thumb-selected-badge {
 		position: absolute;
 		top: 0;
@@ -454,9 +525,22 @@
 		margin-top: 0.15rem;
 	}
 
+	.video-about {
+		margin-top: 0.25rem;
+		color: #d7d7d7;
+		font-size: 0.68rem;
+		line-height: 1.25;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
 	.video-meta {
 		font-size: 0.65rem;
 		color: var(--text-muted);
+		margin-top: 0.18rem;
 	}
 
 	@media (max-width: 520px) {
@@ -476,12 +560,33 @@
 			font-size: 0.62rem;
 		}
 
+		.video-about {
+			display: none;
+		}
+
 		.video-meta {
 			font-size: 0.58rem;
 		}
 
 		.thumb-icon {
 			font-size: 1.8rem;
+		}
+
+		.info-badge {
+			width: 1.05rem;
+			height: 1.05rem;
+			font-size: 0.68rem;
+			top: 4px;
+			right: 4px;
+		}
+
+		.about-popover {
+			left: 4px;
+			right: 4px;
+			bottom: 22px;
+			padding: 0.35rem 0.4rem;
+			font-size: 0.58rem;
+			line-height: 1.18;
 		}
 	}
 
