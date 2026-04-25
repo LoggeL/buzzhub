@@ -245,6 +245,10 @@
 </div>
 
 <style>
+	.page {
+		max-width: 1040px;
+	}
+
 	.lobby-header {
 		text-align: center;
 		padding: 2rem 0 1rem;
@@ -352,8 +356,8 @@
 
 	.video-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.5rem;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.75rem;
 	}
 
 	.video-card {
@@ -434,7 +438,7 @@
 	}
 
 	.video-title {
-		font-size: 0.8rem;
+		font-size: 0.9rem;
 		font-weight: 700;
 		line-height: 1.3;
 		display: -webkit-box;
@@ -453,6 +457,32 @@
 	.video-meta {
 		font-size: 0.65rem;
 		color: var(--text-muted);
+	}
+
+	@media (max-width: 520px) {
+		.page {
+			max-width: 100%;
+		}
+
+		.video-grid {
+			gap: 0.5rem;
+		}
+
+		.video-title {
+			font-size: 0.72rem;
+		}
+
+		.video-channel {
+			font-size: 0.62rem;
+		}
+
+		.video-meta {
+			font-size: 0.58rem;
+		}
+
+		.thumb-icon {
+			font-size: 1.8rem;
+		}
 	}
 
 	.settings-card {
