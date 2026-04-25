@@ -14,7 +14,7 @@ func init() {
 
 type Card struct {
 	Word     string `json:"word"`
-	Color    string `json:"color"`    // "red", "blue", "neutral", "assassin"
+	Color    string `json:"color"` // "red", "blue", "neutral", "assassin"
 	Revealed bool   `json:"revealed"`
 }
 
@@ -277,11 +277,11 @@ func (c *Codenames) resultsPhase() (*game.Phase, error) {
 	}
 
 	data := map[string]any{
-		"cards":   c.allCards(),
-		"winner":  c.winner,
-		"scores":  c.scores,
-		"teams":   c.teams,
-		"final":   true,
+		"cards":  c.allCards(),
+		"winner": c.winner,
+		"scores": c.scores,
+		"teams":  c.teams,
+		"final":  true,
 	}
 	return &game.Phase{
 		Name:          "results",
@@ -355,7 +355,24 @@ func (c *Codenames) assignUpdate() *game.StateUpdate {
 			"spymasters": c.spymasterList(),
 		},
 		PlayerUpdates: playerUpdates,
+		PhaseComplete: c.readyToStart(),
 	}
+}
+
+func (c *Codenames) readyToStart() bool {
+	teamCounts := map[string]int{"red": 0, "blue": 0}
+	hasSpy := map[string]bool{"red": false, "blue": false}
+	for _, p := range c.players {
+		team := c.teams[p]
+		if team != "red" && team != "blue" {
+			return false
+		}
+		teamCounts[team]++
+		if c.spymasters[p] {
+			hasSpy[team] = true
+		}
+	}
+	return teamCounts["red"] >= 2 && teamCounts["blue"] >= 2 && hasSpy["red"] && hasSpy["blue"]
 }
 
 func (c *Codenames) handleGiveHint(event game.PlayerEvent) (*game.StateUpdate, error) {
@@ -496,6 +513,11 @@ func (c *Codenames) handleEndTurn(event game.PlayerEvent) (*game.StateUpdate, er
 
 func (c *Codenames) TimerExpired(_ context.Context) (*game.StateUpdate, error) {
 	if c.phase == "assign" || c.phase == "hint" {
+		if c.phase == "hint" && c.currentHint == "" {
+			c.currentHint = "ZEIT"
+			c.currentNum = 1
+			c.guessesLeft = 1
+		}
 		return &game.StateUpdate{PhaseComplete: true}, nil
 	}
 	return nil, nil

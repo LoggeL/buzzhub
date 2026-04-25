@@ -8,6 +8,9 @@
 	let data = $state<any>(null);
 	let timerVal = $state(0);
 	let lobbyData = $state<any>(null);
+	let hostCanvas = $state<HTMLCanvasElement | undefined>();
+	let hostCtx: CanvasRenderingContext2D | null = null;
+	let hostCanvasKey = '';
 
 	onMount(() => {
 		const socket = getSocket();
@@ -49,6 +52,50 @@
 			socket.off('game:end');
 		};
 	});
+
+	$effect(() => {
+		if (phase !== 'draw' || !hostCanvas || !data) return;
+		const key = `${data.drawer || ''}:${data.turnNum || ''}`;
+		if (hostCanvasKey !== key) {
+			initHostCanvas();
+			hostCanvasKey = key;
+		}
+	});
+
+	$effect(() => {
+		if (phase === 'draw' && data?.stroke) {
+			drawHostStroke(data.stroke);
+		}
+	});
+
+	function initHostCanvas() {
+		if (!hostCanvas) return;
+		hostCtx = hostCanvas.getContext('2d');
+		if (!hostCtx) return;
+		const rect = hostCanvas.parentElement?.getBoundingClientRect();
+		const size = Math.max(1, Math.floor(rect?.width || 500));
+		hostCanvas.width = size;
+		hostCanvas.height = size;
+		hostCtx.fillStyle = '#1a1a2e';
+		hostCtx.fillRect(0, 0, hostCanvas.width, hostCanvas.height);
+		hostCtx.lineCap = 'round';
+		hostCtx.lineJoin = 'round';
+	}
+
+	function drawHostStroke(strokes: any[]) {
+		if (!hostCtx || !hostCanvas || !Array.isArray(strokes)) return;
+		for (const stroke of strokes) {
+			if (!stroke.points || stroke.points.length < 2) continue;
+			hostCtx.beginPath();
+			hostCtx.strokeStyle = stroke.color || '#fff';
+			hostCtx.lineWidth = stroke.size || 4;
+			hostCtx.moveTo(stroke.points[0].x * hostCanvas.width, stroke.points[0].y * hostCanvas.height);
+			for (let i = 1; i < stroke.points.length; i++) {
+				hostCtx.lineTo(stroke.points[i].x * hostCanvas.width, stroke.points[i].y * hostCanvas.height);
+			}
+			hostCtx.stroke();
+		}
+	}
 </script>
 
 <div class="host-page">
@@ -81,7 +128,7 @@
 			</div>
 		</div>
 
-	{:else if phase === 'reveal' && data}
+	{:else if phase === 'reveal' && data?.correctText}
 		<div class="host-reveal">
 			<h2>Richtige Antwort</h2>
 			<div class="correct">{data.correctText}</div>
@@ -113,7 +160,45 @@
 			<p class="sub">Spieler erfinden falsche Antworten...</p>
 		</div>
 
-	{:else if phase === 'guess' && data}
+	{:else if phase === 'reveal' && data?.realAnswer}
+		<div class="host-reveal">
+			<h2>Richtige Antwort</h2>
+			<div class="correct">{data.realAnswer}</div>
+		</div>
+
+	{:else if phase === 'reveal' && data?.word}
+		<div class="host-reveal">
+			<h2>Das Wort war</h2>
+			<div class="correct">{data.word}</div>
+		</div>
+
+	{:else if (phase === 'hint' || phase === 'guess') && data?.cards}
+		<div class="host-codenames">
+			<div class="cn-status">
+				<span class="cn-turn cn-{data.currentTeam}">
+					{data.currentTeam === 'red' ? 'ROT' : 'BLAU'} ist dran
+				</span>
+				<span class="cn-remaining">
+					<span class="cn-r">{data.redLeft}</span> / <span class="cn-b">{data.blueLeft}</span>
+				</span>
+			</div>
+			{#if phase === 'guess' && data.hint}
+				<div class="cn-hint-display">
+					<span class="cn-hint-word">{data.hint}</span>
+					<span class="cn-hint-num">{data.hintNum}</span>
+					<span class="cn-guesses">({data.guessesLeft} uebrig)</span>
+				</div>
+			{/if}
+			<div class="cn-grid">
+				{#each data.cards as card}
+					<div class="cn-card cn-{card.color}" class:cn-revealed={card.revealed}>
+						<span>{card.word}</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+	{:else if phase === 'guess' && data?.options}
 		<div class="host-vote">
 			<h2>Welche ist die Wahrheit?</h2>
 			{#if data.options}
@@ -129,7 +214,7 @@
 		<div class="host-drawing">
 			<div class="hint-text">{data.hint}</div>
 			<div class="host-canvas-container">
-				<canvas id="hostCanvas"></canvas>
+				<canvas bind:this={hostCanvas} id="hostCanvas"></canvas>
 			</div>
 		</div>
 
@@ -191,26 +276,12 @@
 			</div>
 		</div>
 
-	{:else if (phase === 'hint' || phase === 'guess') && data?.cards}
+	{:else if phase === 'results' && data?.cards && data?.winner}
 		<div class="host-codenames">
-			<div class="cn-status">
-				<span class="cn-turn cn-{data.currentTeam}">
-					{data.currentTeam === 'red' ? 'ROT' : 'BLAU'} ist dran
-				</span>
-				<span class="cn-remaining">
-					<span class="cn-r">{data.redLeft}</span> / <span class="cn-b">{data.blueLeft}</span>
-				</span>
-			</div>
-			{#if phase === 'guess' && data.hint}
-				<div class="cn-hint-display">
-					<span class="cn-hint-word">{data.hint}</span>
-					<span class="cn-hint-num">{data.hintNum}</span>
-					<span class="cn-guesses">({data.guessesLeft} uebrig)</span>
-				</div>
-			{/if}
+			<h2>Team {data.winner === 'red' ? 'Rot' : 'Blau'} gewinnt</h2>
 			<div class="cn-grid">
 				{#each data.cards as card}
-					<div class="cn-card cn-{card.color}" class:cn-revealed={card.revealed}>
+					<div class="cn-card cn-{card.color} cn-revealed">
 						<span>{card.word}</span>
 					</div>
 				{/each}

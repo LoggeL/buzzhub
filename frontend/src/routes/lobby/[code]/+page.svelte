@@ -176,7 +176,7 @@
 			<div class="card settings-card fade-in">
 				<h3>Einstellungen</h3>
 				<div class="setting-row">
-					<label>Spielfeldgroesse</label>
+					<div class="setting-label">Spielfeldgroesse</div>
 					<div class="setting-options">
 						{#each [{v:8,l:'Klein (8x8)'},{v:10,l:'Mittel (10x10)'},{v:12,l:'Gross (12x12)'},{v:14,l:'Riesig (14x14)'}] as opt}
 							<button
@@ -188,7 +188,7 @@
 					</div>
 				</div>
 				<div class="setting-row">
-					<label>Zeitlimit</label>
+					<div class="setting-label">Zeitlimit</div>
 					<div class="setting-options">
 						{#each [{v:60,l:'60s'},{v:90,l:'90s'},{v:120,l:'2 Min'},{v:180,l:'3 Min'}] as opt}
 							<button
@@ -428,6 +428,7 @@
 		line-height: 1.3;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
@@ -458,7 +459,7 @@
 		margin-bottom: 0.75rem;
 	}
 
-	.setting-row label {
+	.setting-label {
 		display: block;
 		font-size: 0.8rem;
 		color: var(--text-muted);
