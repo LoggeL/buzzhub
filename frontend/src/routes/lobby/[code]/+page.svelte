@@ -191,22 +191,22 @@
 						onclick={() => !disabled && selectGame(g.id)}
 					>
 						<div class="thumb" style="background-color: {g.thumb}; background-image: linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.48)), url('{gameImage(g.id)}');">
-							<span class="thumb-icon">{g.icon}</span>
 							<span class="info-badge" aria-label="Info zu {g.name}">i</span>
 							<span class="about-popover">{aboutText(g.id)}</span>
 							<span class="thumb-duration">{g.duration}</span>
 							{#if lobbyData.gameId === g.id}
 								<div class="thumb-selected-badge">AUSGEWAEHLT</div>
 							{/if}
-							{#if disabled && isHost}
-								<div class="thumb-overlay">Min. {g.min} Spieler</div>
-							{/if}
 						</div>
 						<div class="video-info">
 							<div class="video-title">{g.name}</div>
 							<div class="video-channel">BuzzHub Originals</div>
 							<div class="video-about">{aboutText(g.id)}</div>
-							<div class="video-meta">{g.views} Aufrufe</div>
+							<div class="video-meta-row">
+								<span class="video-chip icon-chip">{g.icon}</span>
+								<span class="video-chip">Min. {g.min} Spieler</span>
+								<span class="video-meta">{g.views} Aufrufe</span>
+							</div>
 						</div>
 					</button>
 				{/each}
@@ -418,13 +418,6 @@
 		background-position: center;
 	}
 
-	.thumb-icon {
-		font-size: 2.5rem;
-		filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
-		opacity: 0.92;
-		z-index: 1;
-	}
-
 	.thumb-duration {
 		position: absolute;
 		bottom: 4px;
@@ -496,18 +489,6 @@
 		letter-spacing: 0.05em;
 	}
 
-	.thumb-overlay {
-		position: absolute;
-		inset: 0;
-		background: rgba(0,0,0,0.7);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--primary);
-	}
-
 	.video-card.selected .thumb {
 		outline: 2px solid var(--primary);
 	}
@@ -545,10 +526,34 @@
 		overflow: hidden;
 	}
 
+	.video-meta-row {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		flex-wrap: wrap;
+		margin-top: 0.4rem;
+	}
+
+	.video-chip {
+		display: inline-flex;
+		align-items: center;
+		min-height: 1.15rem;
+		padding: 0.12rem 0.35rem;
+		border-radius: 999px;
+		background: rgba(255,255,255,0.08);
+		color: #f0f0f0;
+		font-size: 0.62rem;
+		font-weight: 700;
+	}
+
+	.icon-chip {
+		font-size: 0.8rem;
+		padding-inline: 0.3rem;
+	}
+
 	.video-meta {
-		font-size: 0.65rem;
+		font-size: 0.62rem;
 		color: var(--text-muted);
-		margin-top: 0.18rem;
 	}
 
 	@media (max-width: 520px) {
@@ -572,12 +577,18 @@
 			display: none;
 		}
 
-		.video-meta {
-			font-size: 0.58rem;
+		.video-meta-row {
+			gap: 0.22rem;
+			margin-top: 0.32rem;
 		}
 
-		.thumb-icon {
-			font-size: 1.8rem;
+		.video-chip,
+		.video-meta {
+			font-size: 0.54rem;
+		}
+
+		.icon-chip {
+			font-size: 0.7rem;
 		}
 
 		.info-badge {
