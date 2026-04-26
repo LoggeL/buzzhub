@@ -8,23 +8,23 @@
 	import type { Lobby } from '$lib/stores/lobby';
 
 	const GAMES = [
-		{ id: 'quiz', name: 'Heisser Quickie', desc: 'Mehrere Spieler druecken gleichzeitig den richtigen Buzzer.', icon: '🔥', min: 2, duration: '6:30', views: '1.2M', thumb: '#e74c3c' },
 		{ id: 'voting', name: 'Abstimmung XXL', desc: 'Wer hat die laengste Antwort? Alle bewerten sich gegenseitig.', icon: '🍆', min: 3, duration: '8:15', views: '856K', thumb: '#f39c12' },
-		{ id: 'bluff', name: 'Fake Lust', desc: 'Verfuehre die Runde mit falschen Antworten und erkenne die Wahrheit.', icon: '🥵', min: 3, duration: '10:02', views: '2.1M', thumb: '#9b59b6' },
-		{ id: 'drawing', name: 'Nacktes Zeichnen', desc: 'Alle starren auf deinen Stift. Zeichne schnell, bevor die Zeit kommt.', icon: '🫦', min: 3, duration: '12:45', views: '943K', thumb: '#2ecc71' },
-		{ id: 'crossword', name: 'Versteckte Woerter', desc: 'Finde die geheimen Woerter im Gitter, bevor es die anderen tun.', icon: '💦', min: 2, duration: '3:00', views: '3.4M', thumb: '#e67e22', configurable: true },
+		{ id: 'therapy', name: 'Aftercare Therapie', desc: 'Gib fragwuerdige Ratschlaege fuer kleine Dramen nach der Eskalation.', icon: '🛋️', min: 3, duration: '7:30', views: '2.0M', thumb: '#27ae60' },
 		{ id: 'wordtrails', name: 'Buchstaben-Tease', desc: 'Verbinde Buchstaben zu passenden Woertern und fuelle alle Slots.', icon: '👅', min: 2, duration: '3:00', views: '3.9M', thumb: '#1abc9c' },
-		{ id: 'codenames', name: 'Geheime Signale', desc: 'Zwei Teams, ein heisser Hinweis, viele verdeckte Karten.', icon: '🕵️', min: 4, duration: '15:00', views: '4.7M', thumb: '#c0392b' },
 		{ id: 'headlines', name: 'Clickbait After Dark', desc: 'Ergaenze schamlose Schlagzeilen und vote den groessten Teaser.', icon: '😈', min: 3, duration: '7:00', views: '1.8M', thumb: '#d35400' },
-		{ id: 'redflags', name: 'Red Flags Only', desc: 'Schreibe Warnsignale fuer Profile, Chats und fragwuerdige Anzeigen.', icon: '🚩', min: 3, duration: '7:00', views: '2.6M', thumb: '#e74c3c' },
 		{ id: 'courtroom', name: 'Dirty Gericht', desc: 'Verteidige oder zerlege absurde Party-Vergehen vor der Runde.', icon: '⚖️', min: 3, duration: '7:30', views: '1.5M', thumb: '#34495e' },
 		{ id: 'emoji', name: 'Emoji Beichte', desc: 'Deute zweideutige Geschichten aus reinem Emoji-Chaos.', icon: '😏', min: 3, duration: '6:30', views: '3.1M', thumb: '#f1c40f' },
-		{ id: 'werwuerdeeher', name: 'Wer Wuerde Eher', desc: 'Waehlt direkt, wer zur schmutzigen Frage am besten passt.', icon: '👀', min: 3, duration: '5:30', views: '2.9M', thumb: '#8e44ad' },
-		{ id: 'cvlies', name: 'Sexy Lebenslauf', desc: 'Erfinde fragwuerdige Qualifikationen fuer noch fragwuerdigere Jobs.', icon: '💼', min: 3, duration: '7:00', views: '1.1M', thumb: '#16a085' },
-		{ id: 'memecourt', name: 'Meme Lust', desc: 'Schreibe Captions fuer Bilder, die niemand erklaeren will.', icon: '📸', min: 3, duration: '7:00', views: '4.2M', thumb: '#2980b9' },
-		{ id: 'therapy', name: 'Aftercare Therapie', desc: 'Gib fragwuerdige Ratschlaege fuer kleine Dramen nach der Eskalation.', icon: '🛋️', min: 3, duration: '7:30', views: '2.0M', thumb: '#27ae60' },
-		{ id: 'passwordpanic', name: 'Passwort Panik', desc: 'Errate Login-Geheimnisse, die besser verborgen geblieben waeren.', icon: '🔑', min: 3, duration: '6:30', views: '1.7M', thumb: '#7f8c8d' },
+		{ id: 'bluff', name: 'Fake Lust', desc: 'Verfuehre die Runde mit falschen Antworten und erkenne die Wahrheit.', icon: '🥵', min: 3, duration: '10:02', views: '2.1M', thumb: '#9b59b6' },
+		{ id: 'codenames', name: 'Geheime Signale', desc: 'Zwei Teams, ein heisser Hinweis, viele verdeckte Karten.', icon: '🕵️', min: 4, duration: '15:00', views: '4.7M', thumb: '#c0392b' },
+		{ id: 'quiz', name: 'Heisser Quickie', desc: 'Mehrere Spieler druecken gleichzeitig den richtigen Buzzer.', icon: '🔥', min: 2, duration: '6:30', views: '1.2M', thumb: '#e74c3c' },
 		{ id: 'lastwords', name: 'Letzter Hoehepunkt', desc: 'Schreibe den letzten Satz direkt vor der kompletten Eskalation.', icon: '💬', min: 3, duration: '7:00', views: '3.8M', thumb: '#c0392b' },
+		{ id: 'memecourt', name: 'Meme Lust', desc: 'Schreibe Captions fuer Bilder, die niemand erklaeren will.', icon: '📸', min: 3, duration: '7:00', views: '4.2M', thumb: '#2980b9' },
+		{ id: 'drawing', name: 'Nacktes Zeichnen', desc: 'Alle starren auf deinen Stift. Zeichne schnell, bevor die Zeit kommt.', icon: '🫦', min: 3, duration: '12:45', views: '943K', thumb: '#2ecc71' },
+		{ id: 'passwordpanic', name: 'Passwort Panik', desc: 'Errate Login-Geheimnisse, die besser verborgen geblieben waeren.', icon: '🔑', min: 3, duration: '6:30', views: '1.7M', thumb: '#7f8c8d' },
+		{ id: 'redflags', name: 'Red Flags Only', desc: 'Schreibe Warnsignale fuer Profile, Chats und fragwuerdige Anzeigen.', icon: '🚩', min: 3, duration: '7:00', views: '2.6M', thumb: '#e74c3c' },
+		{ id: 'cvlies', name: 'Sexy Lebenslauf', desc: 'Erfinde fragwuerdige Qualifikationen fuer noch fragwuerdigere Jobs.', icon: '💼', min: 3, duration: '7:00', views: '1.1M', thumb: '#16a085' },
+		{ id: 'crossword', name: 'Versteckte Woerter', desc: 'Finde die geheimen Woerter im Gitter, bevor es die anderen tun.', icon: '💦', min: 2, duration: '3:00', views: '3.4M', thumb: '#e67e22', configurable: true },
+		{ id: 'werwuerdeeher', name: 'Wer Wuerde Eher', desc: 'Waehlt direkt, wer zur schmutzigen Frage am besten passt.', icon: '👀', min: 3, duration: '5:30', views: '2.9M', thumb: '#8e44ad' },
 	];
 
 	let lobbyData = $state<Lobby | null>(null);
