@@ -135,6 +135,10 @@
 		};
 		return texts[gameId] ?? 'Kurzer Party-Modus fuer schnelle Runden mit der ganzen Lobby.';
 	}
+
+	function gameImage(gameId: string): string {
+		return `/game-images/${gameId}.webp`;
+	}
 </script>
 
 <div class="page">
@@ -186,7 +190,7 @@
 						class:disabled
 						onclick={() => !disabled && selectGame(g.id)}
 					>
-						<div class="thumb" style="background: {g.thumb}">
+						<div class="thumb" style="background-color: {g.thumb}; background-image: linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.48)), url('{gameImage(g.id)}');">
 							<span class="thumb-icon">{g.icon}</span>
 							<span class="info-badge" aria-label="Info zu {g.name}">i</span>
 							<span class="about-popover">{aboutText(g.id)}</span>
@@ -410,11 +414,15 @@
 		align-items: center;
 		justify-content: center;
 		overflow: hidden;
+		background-size: cover;
+		background-position: center;
 	}
 
 	.thumb-icon {
 		font-size: 2.5rem;
 		filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+		opacity: 0.92;
+		z-index: 1;
 	}
 
 	.thumb-duration {
